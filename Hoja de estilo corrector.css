@@ -1,0 +1,246 @@
+/* --- CONFIGURACIÓN GENERAL --- */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    font-family: sans-serif;
+    color: white;
+    overflow: hidden; 
+    
+    /* FONDO GENERAL (Para el menú principal) */
+    background-image: url('Assets/fondo2.jpg'); 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* --- ESTILOS COMUNES --- */
+section {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%; 
+    width: 100%;
+    display: flex;
+    flex-direction: column; 
+    justify-content: center;
+    align-items: center;
+}
+
+/* --- CAPA 2: EL MENÚ (BOTONES) --- */
+#menu {
+    z-index: 1; 
+}
+
+/* --- CONTROL DE VISIBILIDAD DE LOS BOTONES --- */
+.contenedor-botones {
+    display: flex;
+    flex-wrap: wrap; 
+    justify-content: center;
+    gap: 20px; 
+    margin-top: 30px;
+    opacity: 0; 
+    transition: opacity 0.5s ease-in; 
+}
+
+.contenedor-botones.visible {
+    opacity: 1;
+}
+
+/* --- ESTILOS DE LOS BOTONES DEL MENÚ (CORREGIDO) --- */
+.btn-imagen {
+    display: flex;
+    flex-direction: column; /* OBLIGA AL TEXTO A IR ABAJO */
+    align-items: center;      /* CENTRA TODO */
+    text-decoration: none;
+    color: white;
+    width: 150px;             /* Ancho fijo para el botón */
+    margin: 10px;             /* Espacio extra por seguridad */
+}
+
+.btn-imagen img {
+    width: 150px;             /* Ancho fijo imagen */
+    height: 150px;            /* Alto fijo imagen */
+    object-fit: cover;        /* Recorta para que sea cuadrada perfecta */
+    border-radius: 15px;
+    border: 3px solid white;
+    transition: transform 0.3s; 
+    background-color: rgba(0,0,0,0.5); 
+    display: block;           /* Asegura que la imagen se comporte como bloque */
+}
+
+.btn-imagen span {
+    margin-top: 10px;         /* Espacio entre imagen y texto */
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.btn-imagen:hover img {
+    transform: scale(1.1); 
+    border-color: #4ade80; 
+}
+
+/* --- CAPA 1: INICIO (EL TELÓN / LOGO) --- */
+#inicio {
+    z-index: 10; 
+    background-image: url('Assets/fondo.png'); 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    cursor: pointer; 
+    transition: transform 1.5s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+#inicio.subir {
+    transform: translateY(-100%); 
+}
+
+/* ================================================= */
+/* --- ESCENA INTERACTIVA (PÁGINA INICIO.HTML) --- */
+/* ================================================= */
+
+/* FONDO LIMPIO (SIN BLUR) PARA LA PÁGINA INTERACTIVA */
+#pag1 {
+    /* El !important aquí asegura que se use el fondo 3 y no el 2 */
+    background-image: url('Assets/fondo3.jpg') !important;
+    position: relative;
+}
+
+#escena-interactiva {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* --- OBJETOS INTERACTIVOS --- */
+.objeto-lab {
+    position: absolute; 
+    display: block;
+    cursor: pointer;
+    
+    /* BORDE ROJO: Bórralo cuando termines de acomodar */
+    border: 2px solid red; 
+    
+    transition: transform 0.2s; 
+}
+
+/* IMAGEN GLOW (RESPLANDOR) */
+.objeto-lab img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; 
+    opacity: 0; /* INVISIBLE */
+    transition: opacity 0.3s ease; 
+}
+
+.objeto-lab:hover img {
+    opacity: 1; /* VISIBLE AL PASAR EL MOUSE */
+}
+
+/* --- POSICIONES RE-CALCULADAS A PORCENTAJES --- */
+/* Base de cálculo: 1920px ancho x 1080px alto */
+
+/* 1. MICROSCOPIO 1 */
+#btn-microscopio {
+    /* Conversión: 172px / 1080px = 15.9% */
+    top: 15.9%;      
+    /* Conversión: 454px / 1920px = 23.6% */
+    left: 23.6%;     
+    
+    /* Mantenemos tus dimensiones fijas */
+    width: 332px;  
+    height: 381px; 
+}
+
+/* 2. PLACAS DE PETRI */
+#btn-placas {
+    top: 12.6%;      /* (136/1080) */
+    left: 46.5%;     /* (893/1920) */
+    width: 546px;
+    height: 357px;
+}
+
+/* 3. MICROSCOPIO 2 (ELECTRÓNICO) */
+#btn-micro2 {
+    top: 58.2%;      /* (629/1080) */
+    left: 23.5%;     /* (451/1920) */
+    width: 960px;
+    height: 451px;
+}
+
+/* 4. PUERTA */
+#btn-puerta {
+    top: 20.5%;      /* (221/1080) */
+    left: 80.7%;     /* (1549/1920) */
+    
+    /* NOTA: Como la puerta está muy a la derecha, 
+       usamos 'left' en porcentaje para que no se salga de la pantalla */
+    width: 376px;
+    height: 524px;
+}
+
+/* BOTÓN VOLVER */
+.boton-volver-flotante {
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    color: white;
+    text-decoration: none;
+    font-size: 1.2rem;
+    background: rgba(0,0,0,0.5);
+    padding: 10px 20px;
+    border-radius: 20px;
+    border: 1px solid white;
+    z-index: 100; /* Asegura que esté encima de todo */
+}
+
+
+/* ================================================= */
+/* --- PÁGINA DE CRÉDITOS (FONDO WEBP + PNG 80%) --- */
+/* ================================================= */
+
+/* 1. EL FONDO ANIMADO (.WEBP) */
+#pag-creditos {
+    /* El !important asegura que sobreescriba el fondo2 del body general */
+    background-image: url('Assets/fondo4.webp') !important;
+    
+    /* Aseguramos que cubra toda la pantalla */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    /* Configuración Flexbox para centrar la imagen PNG automáticamente */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    /* Opcional: Si el video es muy brillante, podemos oscurecerlo un poco
+       usando un "inset box-shadow" sobre el body, o simplemente dejarlo así. */
+}
+
+/* 2. LA IMAGEN CENTRAL (PNG) */
+.imagen-central-80 {
+    /* Ocupa el 80% del ancho disponible... */
+    max-width: 80%;
+    
+    /* ...PERO también cuidamos que no se salga de alto (80% del alto de pantalla) */
+    max-height: 80vh;
+    
+    /* Mantiene la proporción perfecta (no se estira) */
+    object-fit: contain;
+    
+    /* Un poco de sombra para que se despegue del fondo animado */
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+    
+    /* Animación de entrada suave (reciclamos la que ya creamos antes) */
+    animation: aparecerSuave 1s ease-out;
+}
+
+/* Reutilizamos la animación de Fade In si no la tenías definida globalmente */
+@keyframes aparecerSuave {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}

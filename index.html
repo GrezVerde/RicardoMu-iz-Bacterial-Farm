@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bacterial Farm</title>
+    <link rel="stylesheet" href="Hoja de estilo corrector.css">
+</head>
+<body>
+
+    <section id="menu">
+        <div class="contenedor-botones">
+            <a href="inicio.html" class="btn-imagen">
+                <img src="Assets/boton1.png" alt="Inicio">
+                <span>Inicio</span>
+            </a>
+            <a href="creditos.html" class="btn-imagen">
+                <img src="Assets/boton2.png" alt="Créditos">
+                <span>Créditos</span>
+            </a>
+            <a href="galeria.html" class="btn-imagen">
+                <img src="Assets/boton3.png" alt="Galería">
+                <span>Galería</span>
+            </a>
+            <a href="jardin.html" class="btn-imagen">
+                <img src="Assets/boton4.png" alt="Jardín">
+                <span>Jardín</span>
+            </a>
+            <a href="cargarpartida.html" class="btn-imagen">
+                <img src="Assets/boton5.png" alt="Salir">
+                <span>Salir</span>
+            </a>
+        </div>
+    </section>
+
+    <section id="inicio">
+        </section>
+
+    <script>
+        const telon = document.getElementById('inicio');
+        // AHORA BUSCAMOS EL CONTENEDOR DE BOTONES, NO EL MENÚ ENTERO
+        const botones = document.querySelector('.contenedor-botones');
+
+        function abrirLaGranja() {
+            telon.classList.add('subir');
+            // Hacemos visibles los botones
+            botones.classList.add('visible');
+        }
+
+        telon.addEventListener('click', abrirLaGranja);
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                abrirLaGranja();
+            }
+        });
+    </script>
+
+</body>
+</html>
