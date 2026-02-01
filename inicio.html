@@ -30,5 +30,31 @@
 
     </div>
 
+    <script>
+    // --- AUTOSAVE: AL ENTRAR AQUÍ, SE GUARDA LA PARTIDA ---
+    
+    // Configura estos 2 datos según la página donde pegues el código:
+    const NOMBRE_NIVEL = "El Jardín";       // Nombre que quieres que salga al cargar
+    const FOTO_NIVEL = "Assets/boton4.png"; // La imagen que representa este nivel
+
+    function guardarProgreso() {
+        const datos = {
+            nivel: NOMBRE_NIVEL,
+            imagen: FOTO_NIVEL,
+            url: window.location.href, // Guarda automáticamente esta dirección
+            fecha: new Date().toLocaleString('es-ES', { hour12: true })
+        };
+
+        // Guardamos en la misma "caja" que lee el otro archivo
+        localStorage.setItem('BacterialFarm_Save1', JSON.stringify(datos));
+        console.log("Juego guardado en: " + NOMBRE_NIVEL);
+    }
+
+    // Guardar apenas carga la página
+    window.addEventListener('load', guardarProgreso);
+</script>
+
+</body>
+</html>
 </body>
 </html>

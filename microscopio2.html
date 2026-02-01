@@ -3,17 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página Interna</title>
+    <title>Microscopio Electrónico</title>
     <link rel="stylesheet" href="Hoja de estilo corrector.css">
-</head>
-<body class="pagina-interna" id="pag1">
+    
+    <style>
+        /* --- ESTILOS GENERALES --- */
+        #contenedor-microscopio {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            background-color: #1a252f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
 
-    <section class="contenido-interno">
-        <h1>Sección: Inicio</h1>
-        <p>Aquí va el contenido de la página 1.</p>
+        .bacteria-base {
+            position: relative;
+            width: 1100px;  
+            height: 825px;  
+            background-image: url('Assets/fondo_bacteria.jpg'); 
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            /* Recuadro de referencia (puedes quitarlo luego) */
+            border: 1px dashed rgba(0, 255, 255, 0.3);
+        }
+
+        /* --- ESTILO BASE DE LOS BOTONES --- */
+        .parte-bacteria {
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.2s ease, filter 0.2s ease;
+            
+            /* Marcos rojos para MODO DISEÑO */
+            border: 2px solid rgba(255, 0, 0, 0.5); 
+            background: rgba(255, 0, 0, 0.1);      
+        }
+
+        /* EFECTO VISUAL AL PASAR EL MOUSE (GLOW + ESCALA) */
+        .parte-bacteria:hover {
+            background: rgba(0, 255, 0, 0.3); 
+            border-color: #4ade80;
+            transform: scale(1.05);
+            /* IMPORTANTE: YA NO CAMBIAMOS EL Z-INDEX AQUÍ GLOBALMENTE */
+        }
+
+        /* AJUSTE DE IMÁGENES DENTRO DE LOS BOTONES */
+        .parte-bacteria img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none; /* La imagen es solo adorno, el div captura el click */
+        }
+
+
+        /* ================================================================= */
+        /* JERARQUÍA DE CAPAS ESTRICTA (Z-INDEX FIJO) */
+        /* ================================================================= */
+
+        /* 1. PILI / CILIOS (FONDO ABSOLUTO) */
+        .parte-pili {
+            /* Z-INDEX 1: SIEMPRE AL FONDO. */
+            z-index: 1 !important; 
+            
+            /* TRUCO: pointer-events: none en el contenedor hace que lo transparente NO capture el click. */
+            pointer-events: none; 
+        }
         
-        <a href="index.html" class="boton-volver">⬅ Volver al Menú</a>
-    </section>
+        /* Solo activamos el click cuando el mouse toca la IMAGEN (los pelitos pintados) */
+        .parte-pili img { 
+            pointer-events: auto; 
+        }
+        
+        /* Al hacer hover en el Pili, SE QUEDA EN Z-INDEX 1. NO SUBE. */
+        .parte-pili:hover {
+            z-index: 1 !important; 
+        }
 
+
+        /* 2. CAPA MEDIA (CUERPO Y FLAGELO) */
+        .parte-cuerpo {
+            z-index: 50; /* Piso 50 */
+        }
+        .parte-cuerpo:hover {
+            z-index: 50; /* Se queda en el piso 50 al brillar */
+        }
+
+        .parte-flagelo {
+            z-index: 50; 
+            clip-path: polygon(0 20%, 100% 20%, 100% 80%, 0 80%);
+        }
+
+
+        /* 3. CAPA SUPERIOR (ADN Y RIBOSOMAS - BOTONES PEQUEÑOS) */
+        /* Piso 100: Siempre estarán encima del Pili (Piso 1) y del Cuerpo (Piso 50) */
+        
+        .parte-dna {
+            z-index: 100 !important; 
+        }
+        /* Al hacer hover, suben un poquito (101) solo para ganar a otros pequeños, 
+           pero ya de por sí ganan a los grandes */
+        .parte-dna:hover {
+            z-index: 101 !important; 
+        }
+
+        .parte-ribosomas {
+            z-index: 100 !important; 
+        }
+        .parte-ribosomas:hover {
+            z-index: 101 !important; 
+        }
+
+
+        /* --- ESTILOS DEL POPUP (SOLO IMAGEN) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(2px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 5000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-activa { opacity: 1; pointer-events: auto; }
+        .modal-contenedor-interno { background: transparent; border: none; max-width: 90%; text-align: center; }
+        #modal-img { max-height: 80vh; max-width: 100%; filter: drop-shadow(0 0 20px rgba(0,0,0,0.5)); }
+        .btn-cerrar-modal { margin-top: 15px; background: #ff6b6b; color: white; border: 2px solid white; padding: 10px 30px; font-weight: bold; border-radius: 30px; cursor: pointer; }
+
+        /* OTROS */
+        .titulo-escena { position: absolute; top: 20px; width: 100%; text-align: center; color: #4db6ac; font-family: sans-serif; font-size: 3rem; pointer-events: none; z-index: 4000; }
+        .btn-guardar { background: rgba(0,0,0,0.6); border: 2px solid white; color: white; padding: 10px 20px; border-radius: 30px; cursor: pointer; display: flex; gap: 10px; }
+        #mensaje-confirmacion { display: none; color: #4ade80; margin-left: 10px; background: rgba(0,0,0,0.8); padding: 5px 10px; border-radius: 10px; }
+    </style>
+</head>
+<body class="pagina-interna">
+
+    <div id="zona-guardado" style="position: absolute; top: 20px; right: 20px; z-index: 5000;">
+        <button onclick="guardarPartidaManual()" class="btn-guardar"><span>💾</span> Guardar</button>
+        <span id="mensaje-confirmacion">¡Guardado!</span>
+    </div>
+
+    <div id="contenedor-microscopio">
+        <h1 class="titulo-escena">ANÁLISIS ESTRUCTURAL</h1>
+
+        <div class="bacteria-base">
+            
+            <div class="parte-bacteria parte-pili" 
+                 onclick="mostrarInfo('Assets/info_pili.png')"
+                 style="top: 2%; left: 5%; width: 70%; height: 70%;">
+                 <img src="Assets/cilios1.png">
+            </div>
+
+            <div class="parte-bacteria parte-flagelo" 
+                 onclick="mostrarInfo('Assets/info_flagelo.png')"
+                 style="top: 40%; left: 5%; width: 30%; height: 20%;">
+                 <img src="Assets/flagelo1.png">
+            </div>
+
+            <div class="parte-bacteria parte-cuerpo" 
+                 onclick="mostrarInfo('Assets/info_pared.png')"
+                 style="top: 25%; left: 30%; width: 40%; height: 40%; border-radius: 50%;">
+                 <img src="Assets/ADN1.png">
+            </div>
+
+            <div class="parte-bacteria parte-dna" 
+                 onclick="mostrarInfo('Assets/info_dna.png')"
+                 style="top: 42%; left: 48%; width: 10%; height: 12%; border-radius: 50%;">
+                 <img src="Assets/plasmidos1.png">
+            </div>
+
+            <div class="parte-bacteria parte-ribosomas" 
+                 onclick="mostrarInfo('Assets/info_ribosomas.png')"
+                 style="top: 32%; left: 55%; width: 12%; height: 12%; border-radius: 50%;">
+                 <img src="Assets/ribosomas1.png">
+            </div>
+
+        </div>
+
+        <a href="inicio.html" class="boton-volver-flotante" style="bottom: 30px;">⬅ Volver</a>
+    </div>
+
+    <div id="modal-info" class="modal-overlay" onclick="cerrarInfo()">
+        <div class="modal-contenedor-interno" onclick="event.stopPropagation()">
+            <img id="modal-img" src="" alt="Info">
+            <br>
+            <button class="btn-cerrar-modal" onclick="cerrarInfo()">CERRAR</button>
+        </div>
+    </div>
+
+    <script>
+        const DATOS_NIVEL = { nombre: "Microscopio", imagen: "Assets/micro2_glow.jpg", url: window.location.href };
+        
+        function guardarPartidaManual() {
+            const savegame = {
+                nivel: DATOS_NIVEL.nombre,
+                imagen: DATOS_NIVEL.imagen,
+                url: DATOS_NIVEL.url,
+                fecha: new Date().toLocaleString('es-ES', { hour12: true })
+            };
+            localStorage.setItem('BacterialFarm_Save1', JSON.stringify(savegame));
+            const msg = document.getElementById('mensaje-confirmacion');
+            msg.style.display = 'inline';
+            setTimeout(() => { msg.style.display = 'none'; }, 2000);
+        }
+
+        const modal = document.getElementById('modal-info');
+        const mImg = document.getElementById('modal-img');
+        function mostrarInfo(i) { mImg.src = i; modal.classList.add('modal-activa'); }
+        function cerrarInfo() { modal.classList.remove('modal-activa'); }
+    </script>
 </body>
 </html>

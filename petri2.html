@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página Interna</title>
+    <link rel="stylesheet" href="Hoja de estilo corrector.css">
+</head>
+<body class="pagina-interna" id="pag1">
+
+    <section class="contenido-interno">
+        <h1>Sección: Inicio</h1>
+        <p>Aquí va el contenido de la página 1.</p>
+        
+        <a href="index.html" class="boton-volver">⬅ Volver al Menú</a>
+    </section>
+<div id="zona-guardado" style="position: absolute; top: 20px; right: 20px; z-index: 1000;">
+    <button onclick="guardarPartidaManual()" class="btn-guardar">
+        💾 Guardar Progreso
+    </button>
+    <span id="mensaje-confirmacion" style="display:none; color: #4ade80; font-weight: bold; margin-left: 10px; text-shadow: 0 0 5px black;">
+        ¡Partida Guardada!
+    </span>
+</div>
+
+<style>
+    .btn-guardar {
+        background: rgba(0, 0, 0, 0.5);
+        border: 2px solid white;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 30px;
+        cursor: pointer;
+        font-family: sans-serif;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
+    }
+
+    .btn-guardar:hover {
+        background: rgba(74, 222, 128, 0.3); /* Verde al pasar el mouse */
+        border-color: #4ade80;
+        transform: scale(1.1);
+    }
+
+    .btn-guardar:active {
+        transform: scale(0.95);
+    }
+</style>
+
+<script>
+    // --- CONFIGURACIÓN DE ESTE NIVEL ---
+    const DATOS_NIVEL = {
+        nombre: "El Jardín",              // <--- CAMBIA ESTO SEGÚN LA PÁGINA
+        imagen: "Assets/boton4.png",      // <--- LA FOTO QUE SE VERÁ AL CARGAR
+        url: window.location.href         // Guarda la dirección actual
+    };
+
+    function guardarPartidaManual() {
+        // 1. Preparamos los datos
+        const savegame = {
+            nivel: DATOS_NIVEL.nombre,
+            imagen: DATOS_NIVEL.imagen,
+            url: DATOS_NIVEL.url,
+            fecha: new Date().toLocaleString('es-ES', { hour12: true })
+        };
+
+        // 2. Guardamos en el navegador
+        localStorage.setItem('BacterialFarm_Save1', JSON.stringify(savegame));
+        console.log("Guardado manual exitoso");
+
+        // 3. Feedback visual (Mensaje de "Guardado!")
+        const mensaje = document.getElementById('mensaje-confirmacion');
+        const boton = document.querySelector('.btn-guardar');
+        
+        mensaje.style.display = "inline"; // Mostrar mensaje
+        boton.style.borderColor = "#4ade80"; // Poner borde verde al botón
+        boton.innerText = "✔ Guardado";
+
+        // Ocultar mensaje después de 2 segundos y volver a la normalidad
+        setTimeout(() => {
+            mensaje.style.display = "none";
+            boton.style.borderColor = "white";
+            boton.innerText = "💾 Guardar Progreso";
+        }, 2000);
+    }
+</script>
+</body>
+</html>
+</body>
+</html>

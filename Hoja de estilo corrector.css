@@ -48,36 +48,42 @@ section {
     opacity: 1;
 }
 
-/* --- ESTILOS DE LOS BOTONES DEL MENÚ (CORREGIDO) --- */
+/* --- ESTILOS DE LOS BOTONES DEL MENÚ (RECTANGULARES) --- */
 .btn-imagen {
     display: flex;
-    flex-direction: column; /* OBLIGA AL TEXTO A IR ABAJO */
-    align-items: center;      /* CENTRA TODO */
+    flex-direction: column;
+    align-items: center;
     text-decoration: none;
     color: white;
-    width: 150px;             /* Ancho fijo para el botón */
-    margin: 10px;             /* Espacio extra por seguridad */
+    /* CAMBIO 1: Hacemos el contenedor más ancho */
+    width: 220px;            
+    margin: 15px;            /* Un poco más de margen para que respiren */
 }
 
 .btn-imagen img {
-    width: 150px;             /* Ancho fijo imagen */
-    height: 150px;            /* Alto fijo imagen */
-    object-fit: cover;        /* Recorta para que sea cuadrada perfecta */
-    border-radius: 15px;
+    /* CAMBIO 2: Dimensiones rectangulares */
+    width: 100%;             /* Ocupa todo el ancho del contenedor (220px) */
+    height: 110px;           /* Altura fija más pequeña para que se vea alargado */
+    
+    object-fit: cover;       /* IMPORTANTE: Esto evita que la imagen se deforme/estire */
+    border-radius: 15px;     /* Mantenemos bordes redondeados */
     border: 3px solid white;
-    transition: transform 0.3s; 
+    transition: transform 0.3s, border-color 0.3s; 
     background-color: rgba(0,0,0,0.5); 
-    display: block;           /* Asegura que la imagen se comporte como bloque */
+    display: block;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3); /* Agregué una sombra suave para dar profundidad */
 }
 
 .btn-imagen span {
-    margin-top: 10px;         /* Espacio entre imagen y texto */
+    margin-top: 10px;
     font-size: 1.1rem;
     text-align: center;
+    text-transform: uppercase; /* Opcional: hace que el texto se vea más como etiqueta */
+    letter-spacing: 1px;
 }
 
 .btn-imagen:hover img {
-    transform: scale(1.1); 
+    transform: scale(1.05);  /* Escalado un poco más sutil al ser rectángulo */
     border-color: #4ade80; 
 }
 
@@ -205,7 +211,7 @@ section {
 /* 1. EL FONDO ANIMADO (.WEBP) */
 #pag-creditos {
     /* El !important asegura que sobreescriba el fondo2 del body general */
-    background-image: url('Assets/fondo4.webp') !important;
+    background-image: url('Assets/fondo3.webp') !important;
     
     /* Aseguramos que cubra toda la pantalla */
     background-size: cover;
@@ -244,3 +250,330 @@ section {
     from { opacity: 0; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }
 }
+
+/* Fondo general (mantenemos un oscurecimiento leve para que resalte, pero menos agresivo) */
+.overlay-carga {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Oscuro semitransparente */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    font-family: 'TuFuentePixel', sans-serif; /* Asegúrate de usar la misma fuente del menú */
+}
+
+.titulo-pixel {
+    color: white;
+    font-size: 2rem;
+    margin-bottom: 40px;
+    text-shadow: 2px 2px 0px #4db6ac; /* Sombra acorde al color del tema */
+    letter-spacing: 2px;
+}
+
+.contenedor-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    max-width: 400px;
+}
+
+
+/* --- BLOQUE 1: FONDO Y ESTRUCTURA (Faltaba esto) --- */
+
+/* Fondo oscuro semitransparente que cubre toda la pantalla y centra el contenido */
+.overlay-carga {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85); /* Fondo oscuro */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    font-family: sans-serif; /* Cambia esto por tu fuente pixel si la tienes importada */
+}
+
+.titulo-pixel {
+    color: white;
+    font-size: 2.5rem;
+    margin-bottom: 40px;
+    text-shadow: 3px 3px 0px #4db6ac; /* Sombra estilo pixel */
+    letter-spacing: 4px;
+    text-transform: uppercase;
+}
+
+.contenedor-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    max-width: 450px; /* Ancho máximo para que no se estire demasiado */
+}
+
+/* --- BLOQUE 2: BOTONES (Lo que ya tenías, corregido) --- */
+
+.slot-partida {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.btn-cargar {
+    flex-grow: 1;
+    background-color: #4db6ac; /* Tu color verde azulado */
+    border: none;
+    border-radius: 10px;
+    padding: 20px;
+    color: white;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.1s, background-color 0.2s;
+    box-shadow: 0 5px 0 #398e86; /* Efecto 3D */
+}
+
+.btn-cargar:hover {
+    background-color: #80cbc4; /* Color corregido (sin la 'k') */
+    transform: translateY(-2px);
+}
+
+.btn-cargar:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #398e86;
+}
+
+.icono-slot {
+    font-size: 1.5rem;
+}
+
+.info-partida {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.nombre-partida {
+    font-size: 1.4rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.fecha-partida {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+/* Botón de Borrar */
+.btn-borrar {
+    background-color: #ff6b6b;
+    border: none;
+    border-radius: 10px;
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 5px 0 #c94f4f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s, background-color 0.2s;
+}
+
+.btn-borrar:hover {
+    background-color: #ff8585;
+    transform: translateY(-2px);
+}
+
+.btn-borrar:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #c94f4f;
+}
+
+/* Botón Volver */
+.btn-regresar {
+    margin-top: 30px;
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: bold;
+    font-size: 1rem;
+    align-self: center; /* Centrar el botón */
+    transition: all 0.2s;
+}
+
+.btn-regresar:hover {
+    background: white;
+    color: #4db6ac;
+}
+/* =========================================
+   ESTILOS NUEVOS DE GALERÍA (ESTILO MENÚ)
+   ========================================= */
+
+/* TÍTULOS */
+.titulo-galeria {
+    font-family: 'TuFuentePixel', sans-serif; /* Tu tipografía del juego */
+    color: white;
+    font-size: 3rem;
+    text-shadow: 4px 4px 0 #4db6ac; /* Sombra sólida turquesa */
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+}
+
+.subtitulo-galeria {
+    color: #b2dfdb;
+    font-size: 1.1rem;
+    font-family: sans-serif;
+    margin-bottom: 40px;
+}
+
+/* REJILLA */
+.galeria-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 25px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* TARJETA BASE */
+.item-galeria {
+    position: relative;
+    border-radius: 15px; /* Bordes redondeados como el menú */
+    overflow: hidden;    /* Recorta la imagen a los bordes */
+    aspect-ratio: 1 / 1; /* Cuadrada */
+    cursor: pointer;
+    border: 4px solid #4db6ac; /* Marco turquesa */
+    background: #000;
+    box-shadow: 0 6px 0 #398e86; /* Efecto 3D */
+    transition: all 0.2s ease;
+}
+
+.item-galeria:hover {
+    transform: translateY(-4px);
+    border-color: #80cbc4; /* Marco brillante */
+    box-shadow: 0 8px 0 #398e86;
+}
+
+.thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+/* --- ESTADO BLOQUEADO (NUEVO) --- */
+.item-bloqueado {
+    cursor: not-allowed;
+    border-color: #546e7a; /* Marco gris */
+    box-shadow: 0 6px 0 #37474f;
+}
+
+.item-bloqueado:hover {
+    transform: none; /* No se mueve */
+    border-color: #546e7a;
+}
+
+/* Efecto visual en la imagen bloqueada */
+.item-bloqueado .thumb-img {
+    filter: grayscale(100%) blur(4px); /* Blanco y negro + Borroso */
+    opacity: 0.6;
+}
+
+/* Capa del candado */
+.capa-candado {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.4); /* Oscurece un poco */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.icono-candado {
+    font-size: 3.5rem;
+    filter: drop-shadow(0 0 5px black); /* Sombra para que se vea bien */
+}
+
+/* --- MODAL (Pantalla Completa) --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal-activa {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-contenedor-interno {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 90%;
+}
+
+.modal-imagen {
+    max-height: 60vh;
+    border: 4px solid white;
+    border-radius: 10px;
+    box-shadow: 0 0 25px #4db6ac;
+}
+
+.modal-texto {
+    color: white;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.modal-titulo {
+    font-size: 2rem;
+    color: #4db6ac;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 0 black;
+}
+
+.btn-cerrar-modal {
+    margin-top: 20px;
+    background: transparent;
+    border: 2px solid #ff6b6b;
+    color: #ff6b6b;
+    padding: 10px 30px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: 0.2s;
+}
+.btn-cerrar-modal:hover {
+    background: #ff6b6b;
+    color: white;
+}
+
+

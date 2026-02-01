@@ -3,17 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página Interna</title>
+    <title>Cargar Partida</title>
     <link rel="stylesheet" href="Hoja de estilo corrector.css">
 </head>
-<body class="pagina-interna" id="pag1">
+<body>
 
-    <section class="contenido-interno">
-        <h1>Sección: Inicio</h1>
-        <p>Aquí va el contenido de la página 1.</p>
+    <div id="pantalla-cargar" class="overlay-carga">
+        <h2 class="titulo-pixel">CARGAR PARTIDA</h2>
         
-        <a href="index.html" class="boton-volver">⬅ Volver al Menú</a>
-    </section>
+        <div class="contenedor-slots">
+            <div class="slot-partida">
+                <button class="btn-cargar" onclick="intentarCargar()">
+                    <span class="icono-slot">💾</span>
+                    <div class="info-partida">
+                        <span id="slot-nombre" class="nombre-partida">Buscando...</span>
+                        <span id="slot-fecha" class="fecha-partida">---</span>
+                    </div>
+                </button>
 
+                <button id="btn-borrar" class="btn-borrar" onclick="borrarPartida()" title="Borrar Partida">
+                    🗑️
+                </button>
+            </div>
+
+            <button class="btn-regresar" onclick="volverAlMenu()">
+                Volver al Menú
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const CLAVE_GUARDADO = 'BacterialFarm_Save1';
+        let urlDestino = null;
+
+        function verificarSlot() {
+            // Leemos la memoria del navegador
+            const memoria = localStorage.getItem(CLAVE_GUARDADO);
+            
+            const textoNombre = document.getElementById('slot-nombre');
+            const textoFecha = document.getElementById('slot-fecha');
+            const btnBorrar = document.getElementById('btn-borrar');
+            const btnCargar = document.querySelector('.btn-cargar');
+
+            if (memoria) {
+                // SÍ HAY DATOS
+                const datos = JSON.parse(memoria);
+                console.log("Datos encontrados:", datos); // Muestra en consola qué encontró
+                
+                textoNombre.innerText = datos.nivel;
+                textoFecha.innerText = datos.fecha;
+                urlDestino = datos.url;
+                
+                btnBorrar.style.opacity = "1";
+                btnBorrar.style.pointerEvents = "auto";
+                btnCargar.style.opacity = "1";
+            } else {
+                // NO HAY DATOS
+                console.log("No se encontró partida guardada.");
+                textoNombre.innerText = "ESPACIO VACÍO";
+                textoFecha.innerText = "- Sin datos -";
+                urlDestino = null;
+
+                btnBorrar.style.opacity = "0.3";
+                btnBorrar.style.pointerEvents = "none";
+            }
+        }
+
+        function intentarCargar() {
+            if (urlDestino) {
+                // Si existe la URL, vamos allá
+                window.location.href = urlDestino;
+            } else {
+                alert("No hay partida guardada. Ve al Microscopio y dale al botón 'Guardar' primero.");
+            }
+        }
+
+        function borrarPartida() {
+            if(confirm("¿Borrar partida?")) {
+                localStorage.removeItem(CLAVE_GUARDADO);
+                verificarSlot();
+            }
+        }
+
+        function volverAlMenu() {
+            window.location.href = 'index.html'; 
+        }
+
+        window.onload = verificarSlot;
+    </script>
 </body>
 </html>

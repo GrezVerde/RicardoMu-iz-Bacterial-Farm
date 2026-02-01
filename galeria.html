@@ -3,17 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página Interna</title>
+    <title>Galería de Muestras</title>
     <link rel="stylesheet" href="Hoja de estilo corrector.css">
 </head>
-<body class="pagina-interna" id="pag1">
+<body class="pagina-interna">
 
-    <section class="contenido-interno">
-        <h1>Sección: Inicio</h1>
-        <p>Aquí va el contenido de la página 1.</p>
+    <section class="contenido-interno" style="text-align: center; padding-top: 40px;">
+        <h1 class="titulo-galeria">Galería de Muestras</h1>
+        <p class="subtitulo-galeria">Colecciona especímenes progresando en la historia.</p>
         
-        <a href="index.html" class="boton-volver">⬅ Volver al Menú</a>
+        <div class="galeria-grid" id="grid-galeria">
+            </div>
+        
+        <br><br>
+        <button class="btn-regresar" onclick="window.location.href='index.html'">
+            ⬅ Volver al Menú
+        </button>
     </section>
 
+    <div id="miModal" class="modal-overlay" onclick="cerrarModal()">
+        <div class="modal-contenedor-interno">
+            <img id="img-grande" class="modal-imagen" src="" alt="">
+            <div class="modal-texto">
+                <h2 id="titulo-grande" class="modal-titulo">TÍTULO</h2>
+                <p id="desc-grande">Descripción...</p>
+            </div>
+            <button class="btn-cerrar-modal">CERRAR</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. CONFIGURACIÓN DE TUS IMÁGENES ---
+        // 'reqNivel' debe coincidir EXACTAMENTE con el nombre que guardas en localStorage
+        const COLECCION = [
+            { 
+                id: 1, 
+                titulo: "Bacteria Alpha", 
+                desc: "Organismo simple encontrado en el Jardín.", 
+                img: "Assets/Bactcard1.jpg", // <--- Pon aquí tus rutas reales
+                reqNivel: "Inicio" // Esta siempre estará visible si req es "Inicio"
+            },
+            { 
+                id: 2, 
+                titulo: "Espora Tóxica", 
+                desc: "Peligrosa si se inhala. Aparece en niveles avanzados.", 
+                img: "Assets/Bactcard2.jpg", 
+                reqNivel: "Laboratorio B" 
+            },
+            { 
+                id: 3, 
+                titulo: "Muestra Rara", 
+                desc: "Un hallazgo poco común bajo el microscopio.", 
+                img: "Assets/Bactcard3.jpg", 
+                reqNivel: "El Jardín" 
+            },
+            { 
+                id: 4, 
+                titulo: "Cultivo Final", 
+                desc: "El objetivo final del proyecto.", 
+                img: "Assets/Bactcard4.jpg", 
+                reqNivel: "Final" 
+            }
+        ];
+
+        // --- 2. LÓGICA DE GENERACIÓN ---
+        const grid = document.getElementById('grid-galeria');
+        
+        // Leemos la partida guardada
+        const saveFile = JSON.parse(localStorage.getItem('BacterialFarm_Save1'));
+        
+        // Función simple para saber si mostramos el item
+        function estaDesbloqueado(req) {
+            // Si no pide nivel ("Inicio"), siempre está abierta
+            if (req === "Inicio") return true;
+            // Si no hay partida guardada, solo mostramos las de "Inicio"
+            if (!saveFile) return false;
+            
+            // COMPROBACIÓN: Aquí comparamos si el nivel guardado es igual al requerido
+            // (En un juego complejo usaríamos números de nivel: nivelUsuario >= nivelRequerido)
+            return req === saveFile.nivel; 
+        }
+
+        COLECCION.forEach(item => {
+            const unlocked = estaDesbloqueado(item.reqNivel);
+            const card = document.createElement('div');
+            
+            // Creamos la imagen base (se usa en ambos casos)
+            let contenido = `<img src="${item.img}" class="thumb-img" alt="${item.titulo}">`;
+
+            if (unlocked) {
+                // --- DESBLOQUEADO ---
+                card.className = "item-galeria";
+                // Al hacer clic, abre el modal
+                card.onclick = () => abrirModal(item);
+            } else {
+                // --- BLOQUEADO ---
+                card.className = "item-galeria item-bloqueado";
+                // Agregamos la capa negra y el candado ENCIMA de la imagen
+                contenido += `
+                    <div class="capa-candado">
+                        <span class="icono-candado">🔒</span>
+                    </div>
+                `;
+            }
+
+            card.innerHTML = contenido;
+            grid.appendChild(card);
+        });
+
+        // --- 3. FUNCIONES DEL MODAL ---
+        const modal = document.getElementById('miModal');
+        const imgGrande = document.getElementById('img-grande');
+        const titGrande = document.getElementById('titulo-grande');
+        const descGrande = document.getElementById('desc-grande');
+
+        function abrirModal(item) {
+            imgGrande.src = item.img;
+            titGrande.innerText = item.titulo;
+            descGrande.innerText = item.desc;
+            modal.classList.add('modal-activa');
+        }
+
+        function cerrarModal() {
+            modal.classList.remove('modal-activa');
+        }
+    </script>
 </body>
 </html>

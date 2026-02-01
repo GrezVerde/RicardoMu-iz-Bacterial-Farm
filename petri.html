@@ -3,17 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página Interna</title>
+    <title>Laboratorio - Selección de Muestras</title>
     <link rel="stylesheet" href="Hoja de estilo corrector.css">
+
+    <style>
+        /* --- ESTILOS GENERALES --- */
+        body {
+            background-color: #f0f4f8;
+            background-image: url('Assets/fondo_mesa.jpg');
+            background-size: cover;
+            font-family: sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* RECUADROS ROJOS PARA UBICAR BOTONES (Eliminar al finalizar) */
+        .debug {
+            border: 2px solid red !important;
+            background-color: rgba(255, 0, 0, 0.1);
+        }
+
+        #mesa-trabajo {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- EFECTO DE OPACIDAD AL PASAR EL CURSOR (GENERAL) --- */
+        .objeto-interactivo {
+            opacity: 0; /* Invisible por defecto */
+            transition: opacity 0.4s ease, transform 0.2s ease;
+            cursor: pointer;
+        }
+        .objeto-interactivo:hover {
+            opacity: 1; /* Aparece al pasar el mouse */
+            transform: scale(1.03);
+        }
+
+        /* --- MECHERO (IZQUIERDA) --- */
+        #mechero-container {
+            position: absolute;
+            left: 8%;
+            width: 150px;
+            text-align: center;
+        }
+
+        /* El PNG del mechero SOLO aparece con hover */
+        #mechero-img {
+            width: 100%;
+            opacity: 0;
+            transition: opacity 0.4s ease, transform 0.2s ease;
+            cursor: pointer;
+        }
+        #mechero-container:hover #mechero-img {
+            opacity: 1;
+            transform: scale(1.03);
+        }
+
+        /* La llama NO depende del hover: solo del estado (clase .activo) */
+        .fuego {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            filter: drop-shadow(0 0 10px orange);
+            font-size: 2rem;
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+        }
+        .fuego.activo { opacity: 1 !important; }
+
+        /* --- CAJAS PETRI (CENTRO) --- */
+        #grid-petri {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 20px;
+            margin: 0 50px;
+        }
+
+        .caja-petri {
+            width: 85px;
+            height: 85px;
+            background-image: url('Assets/petri.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            border-radius: 50%;
+        }
+
+        /* --- ASA BACTERIOLÓGICA (DERECHA) --- */
+        #asa-container {
+            position: absolute;
+            right: 8%;
+            height: 350px;
+        }
+        #asa-img {
+            height: 100%;
+        }
+
+        .asa-seleccionada {
+            filter: drop-shadow(0 0 15px cyan) !important;
+            opacity: 1 !important; /* Se mantiene visible si la tienes en la mano */
+        }
+
+        /* --- CURSOR PERSONALIZADO --- */
+        body.cursor-asa {
+            cursor: url('Assets/asa1.png') 10 10, auto;
+        }
+
+        /* --- ALERTAS --- */
+        #advertencia {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 0, 0, 0.85);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 30px;
+            display: none;
+            z-index: 100;
+            font-weight: bold;
+        }
+
+        .boton-volver-flotante {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            text-decoration: none;
+            color: white;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+            border-radius: 20px;
+        }
+    </style>
 </head>
-<body class="pagina-interna" id="pag1">
+<body id="cuerpo-pagina">
 
-    <section class="contenido-interno">
-        <h1>Sección: Inicio</h1>
-        <p>Aquí va el contenido de la página 1.</p>
-        
-        <a href="index.html" class="boton-volver">⬅ Volver al Menú</a>
-    </section>
+    <div id="advertencia">⚠ ¡Debes encender el mechero para esterilizar el área!</div>
 
+    <div id="mesa-trabajo">
+
+        <!-- OJO: ya NO lleva .objeto-interactivo, porque eso apagaba todo por opacity:0 -->
+        <div id="mechero-container" class="debug" onclick="toggleMechero()">
+            <img src="Assets/mechero1.png" id="mechero-img" alt="Mechero Bunsen">
+            <div class="fuego" id="fuego-animacion">🔥</div>
+        </div>
+
+        <div id="grid-petri">
+            <div class="caja-petri objeto-interactivo debug" onclick="interactuarPetri(1)"></div>
+            <div class="caja-petri objeto-interactivo debug" onclick="interactuarPetri(2)"></div>
+            <div class="caja-petri objeto-interactivo debug" onclick="interactuarPetri(3)"></div>
+            <div class="caja-petri objeto-interactivo debug" onclick="interactuarPetri(4)"></div>
+            <div class="caja-petri objeto-interactivo debug" onclick="interactuarPetri(5)"></div>
+            <div class="caja-petri objeto-interactivo debug" onclick="interactuarPetri(6)"></div>
+            <div class="caja-petri objeto-interactivo debug" onclick="interactuarPetri(7)"></div>
+            <div class="caja-petri objeto-interactivo debug" onclick="interactuarPetri(8)"></div>
+            <div class="caja-petri objeto-interactivo debug" onclick="interactuarPetri(9)"></div>
+            <div class="caja-petri objeto-interactivo debug" onclick="interactuarPetri(10)"></div>
+            <div class="caja-petri objeto-interactivo debug" onclick="interactuarPetri(11)"></div>
+            <div class="caja-petri objeto-interactivo debug" onclick="interactuarPetri(12)"></div>
+        </div>
+
+        <div id="asa-container" class="objeto-interactivo debug" onclick="tomarAsa()">
+            <img src="Assets/asa1.png" id="asa-img" alt="Asa">
+        </div>
+
+    </div>
+
+    <a href="index.html" class="boton-volver-flotante">⬅ Volver al Laboratorio</a>
+
+    <script>
+        let mecheroEncendido = false;
+        let tieneAsaEnMano = false;
+
+        const advertenciaDiv = document.getElementById('advertencia');
+        const cuerpo = document.getElementById('cuerpo-pagina');
+        const fuego = document.getElementById('fuego-animacion');
+
+        function toggleMechero() {
+            mecheroEncendido = !mecheroEncendido;
+
+            if (mecheroEncendido) {
+                fuego.classList.add('activo');
+            } else {
+                fuego.classList.remove('activo');
+                if (tieneAsaEnMano) soltarAsa();
+            }
+        }
+
+        function tomarAsa() {
+            if (!mecheroEncendido) {
+                mostrarError("¡No puedes usar herramientas sin esterilizar el área!");
+                return;
+            }
+
+            tieneAsaEnMano = !tieneAsaEnMano;
+
+            if (tieneAsaEnMano) {
+                cuerpo.classList.add('cursor-asa');
+                document.getElementById('asa-container').classList.add('asa-seleccionada');
+            } else {
+                soltarAsa();
+            }
+        }
+
+        function soltarAsa() {
+            tieneAsaEnMano = false;
+            cuerpo.classList.remove('cursor-asa');
+            document.getElementById('asa-container').classList.remove('asa-seleccionada');
+        }
+
+        function interactuarPetri(idCaja) {
+            if (!mecheroEncendido) {
+                mostrarError("¡Peligro de contaminación! Enciende el mechero.");
+                return;
+            }
+
+            const modo = tieneAsaEnMano ? "editar" : "ver";
+            const urlDestino = `petri2.html?id=${idCaja}&modo=${modo}`;
+            guardarYViajar(urlDestino);
+        }
+
+        function mostrarError(texto) {
+            advertenciaDiv.innerText = texto;
+            advertenciaDiv.style.display = 'block';
+            setTimeout(() => { advertenciaDiv.style.display = 'none'; }, 3000);
+        }
+
+        const NOMBRE_NIVEL = "Mesa de Trabajo";
+        const FOTO_NIVEL = "Assets/preview_mesa.jpg";
+
+        function guardarYViajar(url) {
+            const datos = {
+                nivel: NOMBRE_NIVEL,
+                imagen: FOTO_NIVEL,
+                url: url,
+                fecha: new Date().toLocaleString('es-ES', { hour12: true })
+            };
+
+            localStorage.setItem('BacterialFarm_Save1', JSON.stringify(datos));
+            window.location.href = url;
+        }
+    </script>
 </body>
 </html>
