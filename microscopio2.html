@@ -27,27 +27,32 @@
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            /* Recuadro de referencia (puedes quitarlo luego) */
-            border: 1px dashed rgba(0, 255, 255, 0.3);
+            /* Se eliminó el borde de referencia para vista final */
+            border: none;
         }
 
         /* --- ESTILO BASE DE LOS BOTONES --- */
         .parte-bacteria {
             position: absolute;
             cursor: pointer;
-            transition: transform 0.2s ease, filter 0.2s ease;
             
-            /* Marcos rojos para MODO DISEÑO */
-            border: 2px solid rgba(255, 0, 0, 0.5); 
-            background: rgba(255, 0, 0, 0.1);      
+            /* Agregamos transición de opacidad para que aparezca suavemente */
+            transition: transform 0.2s ease, filter 0.2s ease, opacity 0.3s ease;
+            
+            /* CAMBIO 1 y 2: Sin bordes rojos y OPACIDAD 0 por defecto */
+            border: 2px solid transparent; /* Transparente para no mover layout al hover */
+            background: transparent;      
+            opacity: 0; 
         }
 
-        /* EFECTO VISUAL AL PASAR EL MOUSE (GLOW + ESCALA) */
+        /* EFECTO VISUAL AL PASAR EL MOUSE (GLOW + ESCALA + VISIBILIDAD) */
         .parte-bacteria:hover {
+            /* CAMBIO 3: Al poner el cursor, se vuelve visible */
+            opacity: 1;
+
             background: rgba(0, 255, 0, 0.3); 
-            border-color: #4ade80;
+            border-color: #4ade80; /* El borde aparece color verde neón */
             transform: scale(1.05);
-            /* IMPORTANTE: YA NO CAMBIAMOS EL Z-INDEX AQUÍ GLOBALMENTE */
         }
 
         /* AJUSTE DE IMÁGENES DENTRO DE LOS BOTONES */
@@ -55,7 +60,7 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            pointer-events: none; /* La imagen es solo adorno, el div captura el click */
+            pointer-events: none; 
         }
 
 
@@ -65,19 +70,14 @@
 
         /* 1. PILI / CILIOS (FONDO ABSOLUTO) */
         .parte-pili {
-            /* Z-INDEX 1: SIEMPRE AL FONDO. */
             z-index: 1 !important; 
-            
-            /* TRUCO: pointer-events: none en el contenedor hace que lo transparente NO capture el click. */
             pointer-events: none; 
         }
         
-        /* Solo activamos el click cuando el mouse toca la IMAGEN (los pelitos pintados) */
         .parte-pili img { 
             pointer-events: auto; 
         }
         
-        /* Al hacer hover en el Pili, SE QUEDA EN Z-INDEX 1. NO SUBE. */
         .parte-pili:hover {
             z-index: 1 !important; 
         }
@@ -85,10 +85,10 @@
 
         /* 2. CAPA MEDIA (CUERPO Y FLAGELO) */
         .parte-cuerpo {
-            z-index: 50; /* Piso 50 */
+            z-index: 50; 
         }
         .parte-cuerpo:hover {
-            z-index: 50; /* Se queda en el piso 50 al brillar */
+            z-index: 50; 
         }
 
         .parte-flagelo {
@@ -98,13 +98,10 @@
 
 
         /* 3. CAPA SUPERIOR (ADN Y RIBOSOMAS - BOTONES PEQUEÑOS) */
-        /* Piso 100: Siempre estarán encima del Pili (Piso 1) y del Cuerpo (Piso 50) */
         
         .parte-dna {
             z-index: 100 !important; 
         }
-        /* Al hacer hover, suben un poquito (101) solo para ganar a otros pequeños, 
-           pero ya de por sí ganan a los grandes */
         .parte-dna:hover {
             z-index: 101 !important; 
         }
@@ -149,31 +146,31 @@
             
             <div class="parte-bacteria parte-pili" 
                  onclick="mostrarInfo('Assets/info_pili.png')"
-                 style="top: 2%; left: 5%; width: 70%; height: 70%;">
+                 style="top: 22%; left: 36%; width: 47%; height: 44%;">
                  <img src="Assets/cilios1.png">
             </div>
 
             <div class="parte-bacteria parte-flagelo" 
                  onclick="mostrarInfo('Assets/info_flagelo.png')"
-                 style="top: 40%; left: 5%; width: 30%; height: 20%;">
+                 style="top: 40%; left: 15%; width: 30%; height: 20%;">
                  <img src="Assets/flagelo1.png">
             </div>
 
             <div class="parte-bacteria parte-cuerpo" 
                  onclick="mostrarInfo('Assets/info_pared.png')"
-                 style="top: 25%; left: 30%; width: 40%; height: 40%; border-radius: 50%;">
+                 style="top: 37%; left: 40%; width:27%; height: 27%; border-radius: 50%;">
                  <img src="Assets/ADN1.png">
             </div>
 
             <div class="parte-bacteria parte-dna" 
                  onclick="mostrarInfo('Assets/info_dna.png')"
-                 style="top: 42%; left: 48%; width: 10%; height: 12%; border-radius: 50%;">
+                 style="top: 38.4%; left: 61%; width: 20%; height: 24%; border-radius: 50%;">
                  <img src="Assets/plasmidos1.png">
             </div>
 
             <div class="parte-bacteria parte-ribosomas" 
                  onclick="mostrarInfo('Assets/info_ribosomas.png')"
-                 style="top: 32%; left: 55%; width: 12%; height: 12%; border-radius: 50%;">
+                 style="top: 37%; left: 47%; width: 27%; height: 27%; border-radius: 50%;">
                  <img src="Assets/ribosomas1.png">
             </div>
 

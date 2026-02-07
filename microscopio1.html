@@ -3,90 +3,414 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página Interna</title>
+    <title>Microscopio Interactivo Pro - BioPhysics 3.0</title>
     <link rel="stylesheet" href="Hoja de estilo corrector.css">
-</head>
-<body class="pagina-interna" id="pag1">
+    
+    <style>
+        /* --- VARIABLES --- */
+        :root {
+            --color-neon: #4ade80;
+            --color-dark-bg: rgba(15, 15, 15, 0.95);
+            --color-border: rgba(255, 255, 255, 0.15);
+        }
 
-    <section class="contenido-interno">
-        <h1>Sección: Inicio</h1>
-        <p>Aquí va el contenido de la página 1.</p>
+        body { margin: 0; padding: 0; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; background: #000; user-select: none; }
         
-        <a href="index.html" class="boton-volver">⬅ Volver al Menú</a>
-    </section>
-<div id="zona-guardado" style="position: absolute; top: 20px; right: 20px; z-index: 1000;">
-    <button onclick="guardarPartidaManual()" class="btn-guardar">
-        💾 Guardar Progreso
-    </button>
-    <span id="mensaje-confirmacion" style="display:none; color: #4ade80; font-weight: bold; margin-left: 10px; text-shadow: 0 0 5px black;">
-        ¡Partida Guardada!
-    </span>
-</div>
+        /* --- UI ESTILOS --- */
+        .ui-btn {
+            background: var(--color-dark-bg);
+            border: 1px solid var(--color-border);
+            color: #ccc;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+            font-weight: 500;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .ui-btn:hover {
+            border-color: var(--color-neon);
+            color: var(--color-neon);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.2);
+        }
 
-<style>
-    .btn-guardar {
-        background: rgba(0, 0, 0, 0.5);
-        border: 2px solid white;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 30px;
-        cursor: pointer;
-        font-family: sans-serif;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(5px);
-    }
+        .top-right-ui { position: absolute; top: 20px; right: 20px; z-index: 2000; }
+        .bottom-left-ui { position: absolute; bottom: 30px; left: 30px; z-index: 2000; }
 
-    .btn-guardar:hover {
-        background: rgba(74, 222, 128, 0.3); /* Verde al pasar el mouse */
-        border-color: #4ade80;
-        transform: scale(1.1);
-    }
+        /* --- MICROSCOPIO --- */
+        #microscopio-container {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #ffffff;
+            overflow: hidden; z-index: 1; cursor: grab;
+        }
+        #microscopio-container:active { cursor: grabbing; }
 
-    .btn-guardar:active {
-        transform: scale(0.95);
-    }
-</style>
+        #portaobjetos {
+            position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+            transform-origin: center center; will-change: transform;
+            transition: transform 0.1s linear; 
+        }
+        .suavizar-zoom { transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important; }
+
+        /* --- BACTERIAS --- */
+        .bacteria {
+            position: absolute;
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            pointer-events: auto;
+            cursor: pointer; will-change: transform;
+        }
+        /* Hitbox ampliado para facilitar clic */
+        .bacteria::after {
+            content: ''; position: absolute;
+            top: -10px; left: -10px; right: -10px; bottom: -10px;
+        }
+        .bacteria:hover {
+            filter: drop-shadow(0 0 8px var(--color-neon)); z-index: 100;
+        }
+
+        /* --- OVERLAY (Tu mejora del 70% mantenida) --- */
+        #lente-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 100; pointer-events: none;
+            background: radial-gradient(circle at center, transparent 70%, rgba(0,0,0,0.1) 45%, rgba(0,0,0,0.85) 75%, black 100%);
+        }
+
+        /* --- CONTROLES ZOOM --- */
+        #controles-zoom {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            z-index: 2000; display: flex; gap: 8px;
+            background: var(--color-dark-bg); padding: 8px 12px;
+            border-radius: 50px; border: 1px solid var(--color-border);
+        }
+        .btn-zoom {
+            width: 45px; height: 45px; border-radius: 50%;
+            border: 1px solid transparent; background: rgba(255,255,255,0.05);
+            color: #888; font-weight: 700; font-size: 0.75rem;
+            cursor: pointer; transition: 0.2s;
+        }
+        .btn-zoom:hover { color: white; background: rgba(255,255,255,0.1); }
+        .btn-zoom.activo {
+            background: var(--color-neon); color: #000;
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.5); transform: scale(1.1);
+        }
+
+        /* --- MODAL --- */
+        #modal-container {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.9); z-index: 3000;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        #modal-container.visible { opacity: 1; pointer-events: auto; }
+        
+        .modal-box {
+            position: relative; width: 80vw; max-width: 700px; aspect-ratio: 4/3;
+            background: #222; border-radius: 15px; border: 2px solid #444;
+            overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        }
+        .btn-cerrar {
+            position: absolute; top: 15px; right: 15px; width: 35px; height: 35px;
+            border-radius: 50%; background: #ff5f56; border: none; color: white;
+            font-weight: bold; font-size: 1.2rem; cursor: pointer; z-index: 10;
+        }
+    </style>
+</head>
+
+<body id="pag1">
+
+    <div id="microscopio-container">
+        <div id="portaobjetos" class="suavizar-zoom"></div>
+    </div>
+    <div id="lente-overlay"></div>
+
+    <div class="top-right-ui">
+        <button onclick="guardarPartidaManual()" class="ui-btn" id="btn-guardar-ui">💾 Guardar</button>
+        <span id="msg-guardado" style="display:none; color: var(--color-neon); margin-left: 10px; font-weight:bold;">¡Guardado!</span>
+    </div>
+
+    <div class="bottom-left-ui">
+        <a href="index.html" class="ui-btn">⬅ Menú Principal</a>
+    </div>
+
+    <div id="controles-zoom">
+        <button class="btn-zoom activo" onclick="aplicarZoom(0.6, this)">4x</button>
+        <button class="btn-zoom" onclick="aplicarZoom(1.0, this)">10x</button>
+        <button class="btn-zoom" onclick="aplicarZoom(1.8, this)">40x</button>
+        <button class="btn-zoom" onclick="aplicarZoom(2.5, this)">100x</button>
+    </div>
+
+    <div id="modal-container">
+        <div class="modal-box">
+            <button class="btn-cerrar" onclick="cerrarModal()">×</button>
+            <div style="width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; color:#888;">
+                <img id="img-modal-ref" src="" style="max-height: 50%; margin-bottom: 20px;">
+                <h2 style="color:white; margin:0;">Análisis Estructural</h2>
+                <p>Información de la entidad detectada.</p>
+            </div>
+        </div>
+    </div>
 
 <script>
-    // --- CONFIGURACIÓN DE ESTE NIVEL ---
-    const DATOS_NIVEL = {
-        nombre: "El Jardín",              // <--- CAMBIA ESTO SEGÚN LA PÁGINA
-        imagen: "Assets/boton4.png",      // <--- LA FOTO QUE SE VERÁ AL CARGAR
-        url: window.location.href         // Guarda la dirección actual
-    };
+    // --- 1. CONFIGURACIÓN ---
+    const IMAGENES_BACTERIAS = [
+        'Assets/Microbact1.png', // 0: Lenta
+        'Assets/Microbact3.png', // 1: Lenta
+        'Assets/Microbact5.png', // 2: Rápida (Flagelada)
+        'Assets/Microbact7.png', // 3: Rápida (Flagelada)
+        'Assets/Microbact6.png', // 4: Colonia
+        'Assets/Microbact4.png', // 5: Colonia
+        'Assets/Microbact2.png'  // 6: Lenta
+    ];
 
-    function guardarPartidaManual() {
-        // 1. Preparamos los datos
-        const savegame = {
-            nivel: DATOS_NIVEL.nombre,
-            imagen: DATOS_NIVEL.imagen,
-            url: DATOS_NIVEL.url,
-            fecha: new Date().toLocaleString('es-ES', { hour12: true })
+    const contenedor = document.getElementById('portaobjetos');
+    let bacterias = [];
+    let pausado = false;
+
+    // --- 2. CLASE BACTERIA ---
+    class Bacteria {
+        constructor(imgIndex, x, y, isGroupMember = false, parentData = null) {
+            this.element = document.createElement('div');
+            this.element.classList.add('bacteria');
+            
+            this.imgSrc = IMAGENES_BACTERIAS[imgIndex];
+            this.element.style.backgroundImage = `url('${this.imgSrc}')`;
+            
+            // Tipos
+            if (imgIndex === 2 || imgIndex === 3) this.tipo = 'rapida';
+            else if (imgIndex === 4 || imgIndex === 5) this.tipo = 'colonia';
+            else this.tipo = 'normal';
+
+            // Tamaño
+            let baseSize = 40;
+            if (this.tipo === 'colonia') baseSize = 30;
+            const size = baseSize + Math.random() * 20;
+            this.element.style.width = `${size}px`;
+            this.element.style.height = `${size}px`;
+
+            // Límites del mundo virtual
+            const mundoW = window.innerWidth * 3;
+            const mundoH = window.innerHeight * 3;
+            this.limitX = mundoW / 2;
+            this.limitY = mundoH / 2;
+            
+            // Posición
+            this.x = x || (Math.random() * mundoW - mundoW/3);
+            this.y = y || (Math.random() * mundoH - mundoH/3);
+
+            // --- FÍSICA Y MOVIMIENTO ---
+            this.angle = Math.random() * 360; 
+            this.vx = 0; this.vy = 0; this.vRot = 0;
+
+            if (this.tipo === 'rapida') {
+                this.speed = 2 + Math.random() * 1.5;
+                this.angle = Math.random() * 360;
+            } 
+            else if (this.tipo === 'colonia') {
+                this.speed = 0.4;
+                if(isGroupMember && parentData) {
+                    this.speed = parentData.speed;
+                    this.angle = parentData.angle;
+                    this.vRot = (Math.random() - 0.5) * 0.2; 
+                } else {
+                    this.angle = Math.random() * 360;
+                    this.vRot = (Math.random() - 0.5) * 0.2;
+                }
+            } 
+            else { // Normal
+                this.speed = 0.8;
+                this.vRot = (Math.random() - 0.5) * 1;
+            }
+
+            // Evento Click
+            this.element.addEventListener('click', (e) => {
+                if(!isMapDragging) { 
+                    e.stopPropagation(); 
+                    abrirModal(this.imgSrc); 
+                }
+            });
+
+            contenedor.appendChild(this.element);
+        }
+
+        update() {
+            if (pausado) return;
+
+            if (this.tipo === 'rapida') {
+                // --- LÓGICA FLAGELAR (CORREGIDA) ---
+                const rads = this.angle * (Math.PI / 180);
+                this.vx = Math.cos(rads) * this.speed;
+                this.vy = Math.sin(rads) * this.speed;
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Vibración visual
+                const vibracion = (Math.random() - 0.5) * 15; 
+                const visualRotation = this.angle + 90 + vibracion; 
+                this.element.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${visualRotation}deg)`;
+
+                // Tumble (Cambio de dirección aleatorio en movimiento)
+                if (Math.random() < 0.02) {
+                    this.angle += (Math.random() - 0.5) * 180;
+                }
+
+                // --- CORRECCIÓN DEL BUCLE DE BORDE ---
+                // Si toca el borde, forzamos posición segura y reorientamos al centro
+                let fueraDeLimite = false;
+
+                if (this.x > this.limitX) { this.x = this.limitX - 10; fueraDeLimite = true; }
+                else if (this.x < -this.limitX) { this.x = -this.limitX + 10; fueraDeLimite = true; }
+                
+                if (this.y > this.limitY) { this.y = this.limitY - 10; fueraDeLimite = true; }
+                else if (this.y < -this.limitY) { this.y = -this.limitY + 10; fueraDeLimite = true; }
+
+                if (fueraDeLimite) {
+                    // Calcular ángulo hacia el centro (0,0)
+                    const angleToCenter = Math.atan2(-this.y, -this.x) * (180 / Math.PI);
+                    // Apuntar al centro +/- 60 grados de variedad
+                    this.angle = angleToCenter + (Math.random() - 0.5) * 120;
+                }
+
+            } else {
+                // --- LÓGICA NORMAL Y COLONIAS ---
+                const rads = this.angle * (Math.PI / 180);
+                this.vx = Math.cos(rads) * this.speed;
+                this.vy = Math.sin(rads) * this.speed;
+
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                this.rotation = (this.rotation || 0) + this.vRot;
+
+                // Rebote simple
+                if (this.x > this.limitX || this.x < -this.limitX) { this.angle = 180 - this.angle; }
+                if (this.y > this.limitY || this.y < -this.limitY) { this.angle = 360 - this.angle; }
+
+                this.element.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${this.rotation}deg)`;
+            }
+        }
+    }
+
+    // --- 3. GENERACIÓN DE VIDA ---
+    function iniciarVida() {
+        const cantidadTotal = 80; 
+        
+        for (let i = 0; i < cantidadTotal; i++) {
+            const idx = Math.floor(Math.random() * IMAGENES_BACTERIAS.length);
+            
+            // --- COLONIAS ---
+            if (idx === 4 || idx === 5) {
+                const liderX = (Math.random() * window.innerWidth * 2) - window.innerWidth;
+                const liderY = (Math.random() * window.innerHeight * 2) - window.innerHeight;
+                
+                const lider = new Bacteria(idx, liderX, liderY);
+                bacterias.push(lider);
+
+                const chainLength = 3 + Math.floor(Math.random() * 6);
+                let offsetX = 0;
+                let offsetY = 0;
+                const formationAngle = Math.random() * Math.PI * 2; 
+
+                for(let k = 0; k < chainLength; k++) {
+                    const dist = 25 * (k + 1);
+                    const curvatura = Math.sin(k * 0.5) * 15; 
+                    offsetX = Math.cos(formationAngle) * dist + Math.cos(formationAngle + Math.PI/2) * curvatura;
+                    offsetY = Math.sin(formationAngle) * dist + Math.sin(formationAngle + Math.PI/2) * curvatura;
+
+                    bacterias.push(new Bacteria(idx, liderX + offsetX, liderY + offsetY, true, {
+                        speed: lider.speed,
+                        angle: lider.angle
+                    }));
+                }
+
+            } else {
+                bacterias.push(new Bacteria(idx));
+            }
+        }
+        loop();
+    }
+
+    function loop() {
+        bacterias.forEach(b => b.update());
+        requestAnimationFrame(loop);
+    }
+
+    // --- 4. ZOOM Y PANEO ---
+    let currentZoom = 0.6; let panX = 0; let panY = 0;
+    let isMapDragging = false; 
+    let startX, startY;
+
+    function updateTransform(smooth = false) {
+        if(smooth) contenedor.classList.add('suavizar-zoom');
+        else contenedor.classList.remove('suavizar-zoom');
+        contenedor.style.transform = `translate(${panX}px, ${panY}px) scale(${currentZoom})`;
+    }
+
+    function aplicarZoom(zoomLevel, btn) {
+        currentZoom = zoomLevel; updateTransform(true);
+        document.querySelectorAll('.btn-zoom').forEach(b => b.classList.remove('activo'));
+        btn.classList.add('activo');
+    }
+
+    const zona = document.getElementById('microscopio-container');
+    
+    zona.addEventListener('mousedown', (e) => {
+        isMapDragging = false; 
+        startX = e.clientX - panX; 
+        startY = e.clientY - panY;
+        
+        const initialClickX = e.clientX;
+        const initialClickY = e.clientY;
+
+        const onMouseMove = (moveEvent) => {
+            const dist = Math.hypot(moveEvent.clientX - initialClickX, moveEvent.clientY - initialClickY);
+            if(dist > 5) {
+                isMapDragging = true;
+                panX = moveEvent.clientX - startX; 
+                panY = moveEvent.clientY - startY;
+                updateTransform(false); 
+            }
         };
 
-        // 2. Guardamos en el navegador
-        localStorage.setItem('BacterialFarm_Save1', JSON.stringify(savegame));
-        console.log("Guardado manual exitoso");
+        const onMouseUp = () => {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            setTimeout(() => isMapDragging = false, 50); 
+        };
 
-        // 3. Feedback visual (Mensaje de "Guardado!")
-        const mensaje = document.getElementById('mensaje-confirmacion');
-        const boton = document.querySelector('.btn-guardar');
-        
-        mensaje.style.display = "inline"; // Mostrar mensaje
-        boton.style.borderColor = "#4ade80"; // Poner borde verde al botón
-        boton.innerText = "✔ Guardado";
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    });
 
-        // Ocultar mensaje después de 2 segundos y volver a la normalidad
+    // --- 5. MODAL Y GUARDADO ---
+    const modal = document.getElementById('modal-container');
+    const imgModal = document.getElementById('img-modal-ref');
+
+    function abrirModal(srcImagen) {
+        pausado = true; imgModal.src = srcImagen; modal.classList.add('visible');
+    }
+    function cerrarModal() {
+        modal.classList.remove('visible'); pausado = false;
+    }
+    function guardarPartidaManual() {
+        const save = { nivel: "Jardín", fecha: new Date().toLocaleString() };
+        localStorage.setItem('BacterialFarm_Save1', JSON.stringify(save));
+        const btn = document.getElementById('btn-guardar-ui');
+        const msg = document.getElementById('msg-guardado');
+        btn.style.color = "var(--color-neon)"; btn.style.borderColor = "var(--color-neon)";
+        msg.style.display = "inline";
         setTimeout(() => {
-            mensaje.style.display = "none";
-            boton.style.borderColor = "white";
-            boton.innerText = "💾 Guardar Progreso";
+            btn.style.color = "#ccc"; btn.style.borderColor = "var(--color-border)"; msg.style.display = "none";
         }, 2000);
     }
-</script>
 
-</body>
-</html>
+    iniciarVida(); updateTransform(true);
+</script>
 </body>
 </html>
