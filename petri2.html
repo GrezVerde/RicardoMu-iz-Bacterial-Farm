@@ -1,91 +1,618 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página Interna</title>
-    <link rel="stylesheet" href="Hoja de estilo corrector.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laboratorio - Cultivo</title>
+  <link rel="stylesheet" href="Hoja de estilo corrector.css" />
+
+  <style>
+    body {
+      background-color: #f0f2f5;
+      background-image: radial-gradient(circle at center, #eef2f3, #8e9eab);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      user-select: none;
+    }
+
+    #laboratorio-central {
+      position: relative;
+      width: 800px;
+      height: 600px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #panel-datos {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 260px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      border: 1px solid #fff;
+      z-index: 50;
+    }
+
+    h2 {
+      margin: 0 0 10px 0;
+      color: #333;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+      border-bottom: 3px solid #4ade80;
+      display: inline-block;
+    }
+
+    .texto-info {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 15px;
+    }
+
+    .barra-container {
+      width: 100%;
+      height: 20px;
+      background: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+
+    .barra-relleno {
+      height: 100%;
+      width: 0%;
+      background: #2ecc71;
+      transition: width 0.15s;
+    }
+
+    .lbl-porcentaje {
+      text-align: right;
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #27ae60;
+    }
+
+    .btn-accion {
+      margin-top: 20px;
+      width: 100%;
+      padding: 10px;
+      background: white;
+      border: 2px solid #e74c3c;
+      color: #e74c3c;
+      border-radius: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn-accion:hover {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .btn-accion:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-accion:disabled:hover {
+      background: white;
+      color: #e74c3c;
+    }
+
+    #contenedor-petri {
+      position: relative;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      background: #000;
+      cursor: none;
+    }
+
+    #img-fondo {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 1;
+      object-fit: cover;
+    }
+
+    /* Canvas visible donde se verá la imagen revelada */
+    #lienzo-cultivo {
+      position: absolute;
+      top: 0; left: 0;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      z-index: 10;
+      touch-action: none;
+    }
+
+    /* CURSOR PERSONALIZADO */
+    #cursor-asa {
+      position: fixed;
+      top: 0; left: 0;
+      width: 60px;
+      height: auto;
+      pointer-events: none;
+      z-index: 9999;
+      display: none;
+      /* Hotspot en esquina superior izquierda */
+      transform: translate(0, 0);
+      transform-origin: top left;
+    }
+
+    #mensaje-carga {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.9);
+      z-index: 10000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5rem;
+      color: #555;
+      font-weight: bold;
+    }
+  </style>
 </head>
-<body class="pagina-interna" id="pag1">
 
-    <section class="contenido-interno">
-        <h1>Sección: Inicio</h1>
-        <p>Aquí va el contenido de la página 1.</p>
-        
-        <a href="index.html" class="boton-volver">⬅ Volver al Menú</a>
-    </section>
-<div id="zona-guardado" style="position: absolute; top: 20px; right: 20px; z-index: 1000;">
-    <button onclick="guardarPartidaManual()" class="btn-guardar">
-        💾 Guardar Progreso
-    </button>
-    <span id="mensaje-confirmacion" style="display:none; color: #4ade80; font-weight: bold; margin-left: 10px; text-shadow: 0 0 5px black;">
-        ¡Partida Guardada!
-    </span>
-</div>
+<body>
+  <div id="mensaje-carga">Cargando texturas...</div>
+  <img id="cursor-asa" src="Assets/asa2.png" alt="Asa">
 
-<style>
-    .btn-guardar {
-        background: rgba(0, 0, 0, 0.5);
-        border: 2px solid white;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 30px;
-        cursor: pointer;
-        font-family: sans-serif;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(5px);
-    }
+  <div id="laboratorio-central">
+    <div id="panel-datos">
+      <h2 id="lbl-titulo">Muestra #</h2>
+      <div id="lbl-instruccion" class="texto-info">Cargando datos...</div>
 
-    .btn-guardar:hover {
-        background: rgba(74, 222, 128, 0.3); /* Verde al pasar el mouse */
-        border-color: #4ade80;
-        transform: scale(1.1);
-    }
+      <div class="texto-info" style="font-weight: bold; margin-bottom: 5px;">Crecimiento:</div>
+      <div class="barra-container">
+        <div id="barra-progreso" class="barra-relleno"></div>
+      </div>
+      <div class="lbl-porcentaje"><span id="val-porcentaje">0</span>%</div>
 
-    .btn-guardar:active {
-        transform: scale(0.95);
-    }
-</style>
+      <div id="msg-completo" style="display:none; color:#27ae60; font-weight:bold; text-align:center; margin-top:10px;">
+        ¡CULTIVO EXITOSO!
+      </div>
 
-<script>
-    // --- CONFIGURACIÓN DE ESTE NIVEL ---
-    const DATOS_NIVEL = {
-        nombre: "El Jardín",              // <--- CAMBIA ESTO SEGÚN LA PÁGINA
-        imagen: "Assets/boton4.png",      // <--- LA FOTO QUE SE VERÁ AL CARGAR
-        url: window.location.href         // Guarda la dirección actual
+      <button id="btn-salir" class="btn-accion" onclick="salir()" disabled>Guardar y Salir</button>
+    </div>
+
+    <div id="contenedor-petri">
+      <img id="img-fondo" src="Assets/petri1.jpg" alt="Petri Vacía">
+      <canvas id="lienzo-cultivo" width="500" height="500"></canvas>
+    </div>
+  </div>
+
+  <script>
+    // --- CONFIGURACIÓN ---
+    const RADIO_PINCEL = 40;
+    const META_GANAR = 60;
+    const DIMENSION_CAJA = 500;
+
+    // --- REFERENCIAS ---
+    const canvas = document.getElementById('lienzo-cultivo');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+    const asa = document.getElementById('cursor-asa');
+    const loader = document.getElementById('mensaje-carga');
+    const contenedorPetri = document.getElementById('contenedor-petri');
+
+    // UI
+    const uiTitulo = document.getElementById('lbl-titulo');
+    const uiInstr  = document.getElementById('lbl-instruccion');
+    const uiBarra  = document.getElementById('barra-progreso');
+    const uiPorc   = document.getElementById('val-porcentaje');
+    const uiMsg    = document.getElementById('msg-completo');
+    const btnSalir = document.getElementById('btn-salir');
+
+    // Estado
+    let estado = {
+      pintando: false,
+      completado: false,
+      id: null,
+      modo: 'ver',
+      porcentaje: 0,
+      numImg: null
     };
 
-    function guardarPartidaManual() {
-        // 1. Preparamos los datos
-        const savegame = {
-            nivel: DATOS_NIVEL.nombre,
-            imagen: DATOS_NIVEL.imagen,
-            url: DATOS_NIVEL.url,
-            fecha: new Date().toLocaleString('es-ES', { hour12: true })
-        };
+    // --- CANVAS INTERNOS (CLAVE DEL FIX) ---
+    // 1) imageCanvas: guarda la imagen oculta ya ajustada (cover sin distorsión)
+    const imageCanvas = document.createElement('canvas');
+    imageCanvas.width = DIMENSION_CAJA;
+    imageCanvas.height = DIMENSION_CAJA;
+    const imageCtx = imageCanvas.getContext('2d');
 
-        // 2. Guardamos en el navegador
-        localStorage.setItem('BacterialFarm_Save1', JSON.stringify(savegame));
-        console.log("Guardado manual exitoso");
+    // 2) maskCanvas: guarda el “donde pintaste” (alpha)
+    const maskCanvas = document.createElement('canvas');
+    maskCanvas.width = DIMENSION_CAJA;
+    maskCanvas.height = DIMENSION_CAJA;
+    const maskCtx = maskCanvas.getContext('2d', { willReadFrequently: true });
 
-        // 3. Feedback visual (Mensaje de "Guardado!")
-        const mensaje = document.getElementById('mensaje-confirmacion');
-        const boton = document.querySelector('.btn-guardar');
-        
-        mensaje.style.display = "inline"; // Mostrar mensaje
-        boton.style.borderColor = "#4ade80"; // Poner borde verde al botón
-        boton.innerText = "✔ Guardado";
+    // Throttle de cálculo
+    let ultimoCalculo = 0;
+    const INTERVALO_CALCULO = 250; // más fluido sin trabarse
+    let calcPendiente = false;
+    let calcPrecisoSolicitado = false;
 
-        // Ocultar mensaje después de 2 segundos y volver a la normalidad
-        setTimeout(() => {
-            mensaje.style.display = "none";
-            boton.style.borderColor = "white";
-            boton.innerText = "💾 Guardar Progreso";
-        }, 2000);
+    // --- UTIL: drawImageCover (sin distorsión) ---
+    function drawImageCover(ctx2d, img, x, y, w, h) {
+      const iw = img.naturalWidth || img.width;
+      const ih = img.naturalHeight || img.height;
+
+      const scale = Math.max(w / iw, h / ih);
+      const nw = iw * scale;
+      const nh = ih * scale;
+
+      const dx = x + (w - nw) / 2;
+      const dy = y + (h - nh) / 2;
+
+      ctx2d.clearRect(x, y, w, h);
+      ctx2d.drawImage(img, dx, dy, nw, nh);
     }
-</script>
-</body>
-</html>
+
+    // --- 1. INICIO ---
+    window.onload = function () {
+      const params = new URLSearchParams(window.location.search);
+      estado.id = params.get('id');
+      estado.modo = params.get('modo') || 'ver';
+
+      if (!estado.id) {
+        alert("Falta ID");
+        window.location.href = "petri.html";
+        return;
+      }
+
+      uiTitulo.innerText = "MUESTRA #" + estado.id;
+      determinarTextura();
+    };
+
+    // --- 2. SISTEMA DE MEMORIA ---
+    function determinarTextura() {
+      let save = JSON.parse(localStorage.getItem('BacterialFarm_Save1')) || { cajas: {} };
+      if (!save.cajas) save.cajas = {};
+
+      let numImg;
+      let porcentajeGuardado = 0;
+
+      if (save.cajas[estado.id]) {
+        numImg = save.cajas[estado.id].tipoBacteria;
+        porcentajeGuardado = save.cajas[estado.id].porcentaje || 0;
+
+        if (save.cajas[estado.id].completada) {
+          estado.completado = true;
+          estado.porcentaje = 100;
+        } else {
+          estado.porcentaje = porcentajeGuardado;
+        }
+      } else {
+        const rnd = Math.random();
+        if (rnd < 0.85) numImg = Math.floor(Math.random() * 3) + 2; // 2,3,4
+        else numImg = Math.floor(Math.random() * 3) + 5; // 5,6,7
+
+        save.cajas[estado.id] = {
+          tipoBacteria: numImg,
+          completada: false,
+          porcentaje: 0
+        };
+        localStorage.setItem('BacterialFarm_Save1', JSON.stringify(save));
+      }
+
+      estado.numImg = numImg;
+
+      // Actualizar UI si había progreso
+      if (estado.porcentaje > 0) actualizarProgreso(estado.porcentaje);
+
+      prepararImagenOculta(numImg);
+    }
+
+    // --- 3. CARGA + PREPARACIÓN DE IMAGEN OCULTA ---
+    function prepararImagenOculta(numImg) {
+      const ruta = `Assets/petri${numImg}.jpg`;
+      const img = new Image();
+      // IMPORTANTE: NO ponemos crossOrigin para evitar fallos raros en local/file
+      img.src = ruta;
+
+      img.onload = () => {
+        // 1) Dibujar la imagen oculta ajustada en imageCanvas (cover)
+        drawImageCover(imageCtx, img, 0, 0, DIMENSION_CAJA, DIMENSION_CAJA);
+
+        // 2) Preparar máscara (vacía o completa)
+        maskCtx.clearRect(0, 0, DIMENSION_CAJA, DIMENSION_CAJA);
+
+        if (estado.completado) {
+          // Llenar máscara completa si ya está completado
+          llenarMascaraCompleta();
+        }
+
+        // 3) Render inicial
+        render();
+
+        loader.style.display = 'none';
+        iniciarLogica();
+      };
+
+      img.onerror = () => {
+        alert("Error cargando: " + ruta);
+        loader.style.display = 'none';
+        iniciarLogica();
+      };
+    }
+
+    function iniciarLogica() {
+      if (estado.completado) {
+        actualizarProgreso(100);
+        uiInstr.innerText = "Cultivo finalizado.";
+        btnSalir.disabled = false;
+        asa.style.display = 'none';
+      } else if (estado.modo === 'editar') {
+        uiInstr.innerText = "Arrastra el asa para cultivar.";
+        activarEventosPointer();
+      } else {
+        uiInstr.innerText = "Modo observación.";
+        btnSalir.disabled = false;
+      }
+    }
+
+    // --- RENDER: imagen oculta recortada por la máscara ---
+    function render() {
+      ctx.clearRect(0, 0, DIMENSION_CAJA, DIMENSION_CAJA);
+
+      // Recorte circular (para que no salga del círculo visual)
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(DIMENSION_CAJA / 2, DIMENSION_CAJA / 2, DIMENSION_CAJA / 2, 0, Math.PI * 2);
+      ctx.clip();
+
+      // Dibuja imagen completa
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.drawImage(imageCanvas, 0, 0);
+
+      // Aplica máscara: deja visible solo donde hay alpha en maskCanvas
+      ctx.globalCompositeOperation = 'destination-in';
+      ctx.drawImage(maskCanvas, 0, 0);
+
+      // Regresa a normal
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.restore();
+    }
+
+    // --- 4. INTERACCIÓN ---
+    function activarEventosPointer() {
+      window.addEventListener('pointermove', (e) => {
+        asa.style.left = e.clientX + 'px';
+        asa.style.top = e.clientY + 'px';
+      });
+
+      contenedorPetri.addEventListener('pointerenter', () => {
+        if (!estado.completado) asa.style.display = 'block';
+      });
+
+      contenedorPetri.addEventListener('pointerleave', () => {
+        asa.style.display = 'none';
+        estado.pintando = false;
+        solicitarCalculo(true);
+      });
+
+      canvas.addEventListener('pointerdown', (e) => {
+        if (estado.completado) return;
+        canvas.setPointerCapture(e.pointerId);
+        estado.pintando = true;
+        asa.style.transform = "translate(0, 0) rotate(-12deg)";
+
+        const { x, y } = obtenerCoordsCanvas(e);
+        pintarMascara(x, y, true);
+        solicitarCalculo(false);
+      });
+
+      canvas.addEventListener('pointermove', (e) => {
+        if (!estado.pintando || estado.completado) return;
+
+        const { x, y } = obtenerCoordsCanvas(e);
+        pintarMascara(x, y, false);
+
+        const ahora = Date.now();
+        if (ahora - ultimoCalculo > INTERVALO_CALCULO) {
+          solicitarCalculo(false);
+          ultimoCalculo = ahora;
+        }
+      });
+
+      canvas.addEventListener('pointerup', () => {
+        if (!estado.pintando) return;
+        estado.pintando = false;
+        asa.style.transform = "translate(0, 0) rotate(0deg)";
+        solicitarCalculo(true);
+      });
+    }
+
+    function obtenerCoordsCanvas(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+      const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+      return { x, y };
+    }
+
+    // Pintar sobre máscara (donde pintas se revela la imagen)
+    let lastX = null, lastY = null;
+
+    function pintarMascara(x, y, iniciar) {
+      // No pintar fuera del círculo (extra seguro)
+      const cx = DIMENSION_CAJA / 2, cy = DIMENSION_CAJA / 2, r = DIMENSION_CAJA / 2;
+      const dx = x - cx, dy = y - cy;
+      if ((dx*dx + dy*dy) > (r*r)) return;
+
+      maskCtx.save();
+      // Clip circular también en la máscara
+      maskCtx.beginPath();
+      maskCtx.arc(cx, cy, r, 0, Math.PI * 2);
+      maskCtx.clip();
+
+      maskCtx.globalCompositeOperation = 'source-over';
+      maskCtx.lineJoin = 'round';
+      maskCtx.lineCap = 'round';
+      maskCtx.strokeStyle = 'rgba(255,255,255,1)';
+      maskCtx.fillStyle = 'rgba(255,255,255,1)';
+      maskCtx.lineWidth = RADIO_PINCEL * 2;
+
+      if (iniciar || lastX === null) {
+        lastX = x; lastY = y;
+      }
+
+      // Línea suave
+      maskCtx.beginPath();
+      maskCtx.moveTo(lastX, lastY);
+      maskCtx.lineTo(x, y);
+      maskCtx.stroke();
+
+      // Sello circular
+      maskCtx.beginPath();
+      maskCtx.arc(x, y, RADIO_PINCEL, 0, Math.PI * 2);
+      maskCtx.fill();
+
+      maskCtx.restore();
+
+      lastX = x; lastY = y;
+
+      // Re-render para ver la imagen revelada
+      render();
+    }
+
+    // --- 5. PROGRESO ---
+    function solicitarCalculo(preciso) {
+      if (preciso) calcPrecisoSolicitado = true;
+      if (calcPendiente) return;
+
+      calcPendiente = true;
+      requestAnimationFrame(() => {
+        calcPendiente = false;
+        const salto = calcPrecisoSolicitado ? 5 : 10;
+        calcPrecisoSolicitado = false;
+        calcularArea(salto);
+      });
+    }
+
+    function calcularArea(salto) {
+      const imgData = maskCtx.getImageData(0, 0, DIMENSION_CAJA, DIMENSION_CAJA);
+      const data = imgData.data;
+
+      const centroX = DIMENSION_CAJA / 2;
+      const centroY = DIMENSION_CAJA / 2;
+      const radio = DIMENSION_CAJA / 2;
+      const radioCuadrado = radio * radio;
+
+      let pintados = 0;
+      let totales = 0;
+
+      for (let y = 0; y < DIMENSION_CAJA; y += salto) {
+        for (let x = 0; x < DIMENSION_CAJA; x += salto) {
+          const dx = x - centroX;
+          const dy = y - centroY;
+          if ((dx*dx + dy*dy) <= radioCuadrado) {
+            totales++;
+            const index = (y * DIMENSION_CAJA + x) * 4;
+            if (data[index + 3] > 10) pintados++;
+          }
+        }
+      }
+
+      let porcentaje = (totales > 0) ? Math.round((pintados / totales) * 100) : 0;
+      if (porcentaje > 100) porcentaje = 100;
+
+      actualizarProgreso(porcentaje);
+    }
+
+    function actualizarProgreso(p) {
+      estado.porcentaje = p;
+      uiBarra.style.width = p + "%";
+      uiPorc.innerText = p;
+
+      // Guardar progreso parcial siempre (por si cierran sin completar)
+      if (!estado.completado) guardarProgreso(p, false);
+
+      // Habilitar guardar y salir SOLO si pasa la meta
+      if (p >= META_GANAR) {
+        btnSalir.disabled = false;
+      } else {
+        btnSalir.disabled = true;
+      }
+
+      if (p >= META_GANAR && !estado.completado) {
+        estado.completado = true;
+        uiMsg.style.display = 'block';
+        uiInstr.innerText = "Proceso terminado.";
+        asa.style.display = 'none';
+
+        // Completar máscara por si quieres “sellarlo”
+        // (opcional: comenta si no lo quieres)
+        // llenarMascaraCompleta();
+        // render();
+
+        guardarProgreso(100, true);
+      } else {
+        uiMsg.style.display = 'none';
+      }
+    }
+
+    function llenarMascaraCompleta() {
+      maskCtx.clearRect(0, 0, DIMENSION_CAJA, DIMENSION_CAJA);
+      maskCtx.save();
+      maskCtx.beginPath();
+      maskCtx.arc(DIMENSION_CAJA / 2, DIMENSION_CAJA / 2, DIMENSION_CAJA / 2, 0, Math.PI * 2);
+      maskCtx.clip();
+      maskCtx.fillStyle = 'rgba(255,255,255,1)';
+      maskCtx.fillRect(0, 0, DIMENSION_CAJA, DIMENSION_CAJA);
+      maskCtx.restore();
+    }
+
+    function guardarProgreso(porcentaje, completado = false) {
+      try {
+        let save = JSON.parse(localStorage.getItem('BacterialFarm_Save1')) || { cajas: {} };
+        if (!save.cajas) save.cajas = {};
+        if (!save.cajas[estado.id]) save.cajas[estado.id] = {};
+
+        // Conserva tipoBacteria si ya existe
+        if (!save.cajas[estado.id].tipoBacteria && estado.numImg) {
+          save.cajas[estado.id].tipoBacteria = estado.numImg;
+        }
+
+        save.cajas[estado.id].porcentaje = porcentaje;
+
+        if (completado) {
+          save.cajas[estado.id].completada = true;
+          save.cajas[estado.id].porcentaje = 100;
+        }
+
+        localStorage.setItem('BacterialFarm_Save1', JSON.stringify(save));
+      } catch (error) {
+        console.error("Error guardando progreso:", error);
+      }
+    }
+
+    function salir() {
+      // Solo permitir salir si alcanzó META o ya completó
+      if (!estado.completado && estado.porcentaje < META_GANAR) {
+        alert(`Necesitas al menos ${META_GANAR}% para guardar y salir.`);
+        return;
+      }
+      window.location.href = "petri.html";
+    }
+  </script>
 </body>
 </html>

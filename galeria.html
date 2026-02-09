@@ -4,63 +4,218 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Galería de Muestras</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="Hoja de estilo corrector.css">
+    
+    <style>
+        /* --- ESTILOS GENERALES --- */
+        body.pagina-interna {
+            margin: 0; padding: 0;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #1a1a1a; 
+            background-size: cover; background-position: center; background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        .contenido-interno {
+            display: flex; flex-direction: column; align-items: center; padding: 40px 20px;
+        }
+
+        /* --- ENCABEZADO GLASS --- */
+        .header-container {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            padding: 30px 50px; border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 40px; text-align: center;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            max-width: 800px;
+        }
+
+        .titulo-galeria {
+            font-size: 3rem; font-weight: 900; color: #4ade80; margin: 0;
+            text-transform: uppercase; letter-spacing: 2px;
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.5); 
+        }
+
+        .subtitulo-galeria {
+            font-size: 1.2rem; color: #e0e0e0; margin-top: 10px; margin-bottom: 0; font-weight: 400;
+        }
+
+        /* --- GRID GALERÍA --- */
+        .galeria-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px; width: 100%; max-width: 1000px; margin-bottom: 40px;
+        }
+
+        .item-galeria {
+            position: relative; cursor: pointer; border-radius: 15px; overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            aspect-ratio: 1 / 1; border: 3px solid rgba(255,255,255,0.1);
+            background: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .item-galeria:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(74, 222, 128, 0.3); border-color: #4ade80;
+        }
+
+        .thumb-img {
+            width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s;
+        }
+        .item-galeria:hover .thumb-img { transform: scale(1.1); }
+
+        .item-bloqueado { pointer-events: none; filter: grayscale(100%); opacity: 0.7; }
+
+        .capa-candado {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center;
+        }
+        .icono-candado { font-size: 3rem; opacity: 0.8; }
+
+        .btn-regresar {
+            background: rgba(0,0,0,0.8); border: 2px solid #4ade80; color: #4ade80;
+            padding: 12px 30px; cursor: pointer; font-size: 1rem; font-weight: bold;
+            border-radius: 50px; transition: all 0.3s; text-transform: uppercase;
+            letter-spacing: 1px; backdrop-filter: blur(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .btn-regresar:hover {
+            background: #4ade80; color: #000; box-shadow: 0 0 20px #4ade80; transform: scale(1.05);
+        }
+
+        /* --- MODAL CORREGIDO --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9); display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 1000;
+        }
+
+        .modal-activa { opacity: 1; pointer-events: auto; }
+
+        .modal-contenedor-interno {
+            background: #1a1a1a;
+            width: 90%; max-width: 500px;
+            border-radius: 20px;
+            overflow: hidden; /* Mantiene la imagen redondeada arriba */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+            border: 1px solid #333;
+            display: flex; flex-direction: column;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            
+            /* CORRECCIÓN PRINCIPAL: Espacio abajo para que el botón no toque el borde */
+            padding-bottom: 30px; 
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-imagen {
+            width: 100%; height: 250px; object-fit: cover;
+            border-bottom: 4px solid #4ade80;
+        }
+
+        .modal-texto { padding: 30px 30px 20px 30px; text-align: left; }
+
+        .modal-titulo {
+            font-size: 1.8rem; color: #4ade80; margin: 0 0 15px 0;
+            font-weight: 800; text-transform: uppercase;
+        }
+
+        .modal-desc-texto {
+            font-size: 1rem; line-height: 1.6; color: #ddd; margin: 0;
+            text-align: justify; font-weight: 400;
+        }
+
+        /* ESTILO DEL BOTÓN CERRAR MEJORADO */
+        .btn-cerrar-modal {
+            background: #333; 
+            color: #fff; 
+            border: 1px solid #555; 
+            padding: 12px 40px; /* Más ancho */
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 0.9rem;
+            transition: all 0.3s; 
+            text-transform: uppercase; 
+            letter-spacing: 2px;
+            
+            /* Forma de píldora y centrado */
+            border-radius: 50px; 
+            margin: 0 auto; /* Centrado horizontal */
+            width: fit-content; /* Se ajusta al texto */
+            display: block;
+        }
+        
+        .btn-cerrar-modal:hover { 
+            background: #e74c3c; 
+            border-color: #e74c3c;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
+    </style>
 </head>
 <body class="pagina-interna">
 
-    <section class="contenido-interno" style="text-align: center; padding-top: 40px;">
-        <h1 class="titulo-galeria">Galería de Muestras</h1>
-        <p class="subtitulo-galeria">Colecciona especímenes progresando en la historia.</p>
+    <section class="contenido-interno">
+        
+        <div class="header-container">
+            <h1 class="titulo-galeria">Galería de Muestras</h1>
+            <p class="subtitulo-galeria">Colecciona especímenes progresando en la historia.</p>
+        </div>
         
         <div class="galeria-grid" id="grid-galeria">
             </div>
         
-        <br><br>
         <button class="btn-regresar" onclick="window.location.href='index.html'">
             ⬅ Volver al Menú
         </button>
     </section>
 
     <div id="miModal" class="modal-overlay" onclick="cerrarModal()">
-        <div class="modal-contenedor-interno">
+        <div class="modal-contenedor-interno" onclick="event.stopPropagation()">
             <img id="img-grande" class="modal-imagen" src="" alt="">
+            
             <div class="modal-texto">
                 <h2 id="titulo-grande" class="modal-titulo">TÍTULO</h2>
-                <p id="desc-grande">Descripción...</p>
+                <p id="desc-grande" class="modal-desc-texto">Descripción...</p>
             </div>
-            <button class="btn-cerrar-modal">CERRAR</button>
+            
+            <button class="btn-cerrar-modal" onclick="cerrarModal()">CERRAR</button>
         </div>
     </div>
 
     <script>
         // --- 1. CONFIGURACIÓN DE TUS IMÁGENES ---
-        // 'reqNivel' debe coincidir EXACTAMENTE con el nombre que guardas en localStorage
         const COLECCION = [
             { 
                 id: 1, 
-                titulo: "Bacteria Alpha", 
-                desc: "Organismo simple encontrado en el Jardín.", 
-                img: "Assets/Bactcard1.jpg", // <--- Pon aquí tus rutas reales
-                reqNivel: "Inicio" // Esta siempre estará visible si req es "Inicio"
+                titulo: "Escherichia Coli", 
+                desc: "Es una bacteria con forma de bastón que vive naturalmente en los intestinos de los seres humanos y animales de sangre caliente. Se reproduce increíblemente rápido.", 
+                img: "Assets/Bactcard1.jpg", 
+                reqNivel: "Inicio" 
             },
             { 
                 id: 2, 
-                titulo: "Espora Tóxica", 
-                desc: "Peligrosa si se inhala. Aparece en niveles avanzados.", 
+                titulo: "Verrucomicrobium Spinosum", 
+                desc: "Estas protuberancias son extensiones de su propio cuerpo (llamadas prostecas), tiene mucha más piel en contacto con el agua para absorver como una esponja.", 
                 img: "Assets/Bactcard2.jpg", 
                 reqNivel: "Laboratorio B" 
             },
             { 
                 id: 3, 
-                titulo: "Muestra Rara", 
-                desc: "Un hallazgo poco común bajo el microscopio.", 
+                titulo: "Pseudomona Aeruginosa", 
+                desc: "Apuesta todo a la velocidad con un solo flagelo polar. Es la pesadilla de los hospitales porque el flagelo le permite nadar rápidamente hacia tejidos dañados.", 
                 img: "Assets/Bactcard3.jpg", 
                 reqNivel: "El Jardín" 
             },
             { 
                 id: 4, 
-                titulo: "Cultivo Final", 
-                desc: "El objetivo final del proyecto.", 
+                titulo: "Bacterias Estreptococos", 
+                desc: "Son bacterias con forma de esfera perfecta (cocos). Su nombre viene del griego streptos, que significa cadena retorcida.", 
                 img: "Assets/Bactcard4.jpg", 
                 reqNivel: "Final" 
             }
@@ -68,19 +223,11 @@
 
         // --- 2. LÓGICA DE GENERACIÓN ---
         const grid = document.getElementById('grid-galeria');
-        
-        // Leemos la partida guardada
         const saveFile = JSON.parse(localStorage.getItem('BacterialFarm_Save1'));
         
-        // Función simple para saber si mostramos el item
         function estaDesbloqueado(req) {
-            // Si no pide nivel ("Inicio"), siempre está abierta
             if (req === "Inicio") return true;
-            // Si no hay partida guardada, solo mostramos las de "Inicio"
             if (!saveFile) return false;
-            
-            // COMPROBACIÓN: Aquí comparamos si el nivel guardado es igual al requerido
-            // (En un juego complejo usaríamos números de nivel: nivelUsuario >= nivelRequerido)
             return req === saveFile.nivel; 
         }
 
@@ -88,18 +235,13 @@
             const unlocked = estaDesbloqueado(item.reqNivel);
             const card = document.createElement('div');
             
-            // Creamos la imagen base (se usa en ambos casos)
             let contenido = `<img src="${item.img}" class="thumb-img" alt="${item.titulo}">`;
 
             if (unlocked) {
-                // --- DESBLOQUEADO ---
                 card.className = "item-galeria";
-                // Al hacer clic, abre el modal
                 card.onclick = () => abrirModal(item);
             } else {
-                // --- BLOQUEADO ---
                 card.className = "item-galeria item-bloqueado";
-                // Agregamos la capa negra y el candado ENCIMA de la imagen
                 contenido += `
                     <div class="capa-candado">
                         <span class="icono-candado">🔒</span>
