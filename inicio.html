@@ -5,6 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laboratorio - Inicio</title>
     <link rel="stylesheet" href="Hoja de estilo corrector.css">
+    
+    <style>
+        /* --- ESTILOS DE LA BARRA DE PROGRESO ADN (AJUSTADOS AL MENÚ) --- */
+        .dna-progress-container {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 220px;
+            /* Fondo similar al botón de menú (oscuro neutro) */
+            background: rgba(20, 20, 20, 0.9); 
+            /* Borde sutil blanco/gris igual que el menú, adiós borde verde */
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            padding: 12px 16px;
+            border-radius: 30px; /* Bordes más redondeados tipo botón */
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            z-index: 3000;
+            /* Sombra suave negra, sin resplandor de color */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); 
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: transform 0.2s ease;
+        }
+
+        .dna-progress-container:hover {
+            transform: scale(1.02);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .dna-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* Texto blanco/gris claro para coincidir con el menú */
+            color: #f1f5f9; 
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .dna-label { display: flex; align-items: center; gap: 6px; color: #94a3b8; /* Icono un poco más apagado */ }
+        .dna-icon { font-size: 1.1rem; }
+
+        /* Fondo del track de la barra */
+        .progress-track {
+            width: 100%;
+            height: 8px; /* Un poco más fina y elegante */
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        /* Relleno de la barra (AZUL CIAN en lugar de VERDE) */
+        .progress-fill {
+            height: 100%;
+            width: 0%; /* Se modifica con JS */
+            /* Gradiente Azul Ciencia / Cian */
+            background: linear-gradient(90deg, #0ea5e9, #38bdf8); 
+            border-radius: 10px;
+            /* Resplandor azul suave */
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.4); 
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+    </style>
 </head>
 <body class="pagina-interna" id="pag1">
 
@@ -30,31 +96,86 @@
 
     </div>
 
+    <div class="dna-progress-container">
+        <div class="dna-info-row">
+            <span class="dna-label"><span class="dna-icon">🧬</span> ADN</span>
+            <span id="dna-text">0 / 1200</span>
+        </div>
+        <div class="progress-track">
+            <div id="dna-bar" class="progress-fill"></div>
+        </div>
+    </div>
+
     <script>
-    // --- AUTOSAVE: AL ENTRAR AQUÍ, SE GUARDA LA PARTIDA ---
+    // --- LÓGICA DE DATOS Y PROGRESO ---
     
-    // Configura estos 2 datos según la página donde pegues el código:
-    const NOMBRE_NIVEL = "El Jardín";       // Nombre que quieres que salga al cargar
-    const FOTO_NIVEL = "Assets/boton4.png"; // La imagen que representa este nivel
+    const NOMBRE_NIVEL = "Laboratorio Central"; 
+    const FOTO_NIVEL = "Assets/boton4.png"; 
 
-    function guardarProgreso() {
-        const datos = {
-            nivel: NOMBRE_NIVEL,
-            imagen: FOTO_NIVEL,
-            url: window.location.href, // Guarda automáticamente esta dirección
-            fecha: new Date().toLocaleString('es-ES', { hour12: true })
-        };
+    function gestionarDatos() {
+        // 1. RECUPERAR
+        let datosExistentes = JSON.parse(localStorage.getItem('BacterialFarm_Save1')) || {};
 
-        // Guardamos en la misma "caja" que lee el otro archivo
-        localStorage.setItem('BacterialFarm_Save1', JSON.stringify(datos));
-        console.log("Juego guardado en: " + NOMBRE_NIVEL);
+        // 2. ACTUALIZAR (Autosave de ubicación)
+        datosExistentes.nivel = NOMBRE_NIVEL;
+        datosExistentes.imagen = FOTO_NIVEL;
+        datosExistentes.url = window.location.href; 
+        datosExistentes.fecha = new Date().toLocaleString('es-ES', { hour12: true });
+
+        // 3. GUARDAR
+        localStorage.setItem('BacterialFarm_Save1', JSON.stringify(datosExistentes));
+        
+        // 4. CALCULAR BARRA
+        let muestrasCompletas = 0;
+        const TOTAL_MUESTRAS_JUEGO = 12;
+        const PUNTOS_POR_MUESTRA = 100;
+
+        if (datosExistentes.cajas) {
+            for (const key in datosExistentes.cajas) {
+                if (datosExistentes.cajas[key].completada) {
+                    muestrasCompletas++;
+                }
+            }
+        }
+        
+        const puntosActuales = muestrasCompletas * PUNTOS_POR_MUESTRA;
+        const puntosMaximos = TOTAL_MUESTRAS_JUEGO * PUNTOS_POR_MUESTRA;
+        const porcentaje = (puntosActuales / puntosMaximos) * 100;
+        
+        // Actualizar UI
+        const txtDisplay = document.getElementById('dna-text');
+        if(txtDisplay) txtDisplay.innerText = `${puntosActuales} pts`; // Simplificado para que quepa mejor
+
+        const barDisplay = document.getElementById('dna-bar');
+        if(barDisplay) {
+            setTimeout(() => {
+                barDisplay.style.width = `${porcentaje}%`;
+            }, 100);
+        }
     }
 
-    // Guardar apenas carga la página
-    window.addEventListener('load', guardarProgreso);
-</script>
+    window.addEventListener('load', gestionarDatos);
+    </script>
+<script src="audio-manager.js"></script>
+<script>iniciarMusicaPagina(0);</script>
 
-</body>
-</html>
+<div id="hud-escala" class="hud-escala">
+  <div class="escala-label">Resolución de Óptica</div>
+
+  <div class="escala-regla" aria-hidden="true">
+    <div class="ticks major"></div>
+    <div class="ticks minor"></div>
+    <div class="ticks micro"></div>
+  </div>
+
+  <div class="escala-valor">
+    <span id="escala-num">0</span>
+    <span id="escala-uni" class="escala-unidad">m</span>
+  </div>
+</div>
+
+<script src="hud-manager.js"></script>
+<script>actualizarEscalaHUD('m', 1.75);</script>
+
 </body>
 </html>

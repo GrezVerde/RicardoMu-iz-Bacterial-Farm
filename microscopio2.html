@@ -140,7 +140,7 @@
     </div>
 
     <div id="contenedor-microscopio">
-        <h1 class="titulo-escena">ANÁLISIS ESTRUCTURAL</h1>
+        <h1 class="titulo-escena">Estructuras Bacterianas</h1>
 
         <div class="bacteria-base">
             
@@ -208,5 +208,13 @@
         function mostrarInfo(i) { mImg.src = i; modal.classList.add('modal-activa'); }
         function cerrarInfo() { modal.classList.remove('modal-activa'); }
     </script>
+
+    <script src="audio-manager.js"></script>
+<script>iniciarMusicaPagina(1);</script>
+
+
+<script src="hud-manager.js"></script>
+<script>actualizarEscalaHUD('nm', 650);</script>
+
 </body>
 </html>

@@ -1,91 +1,676 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página Interna</title>
-    <link rel="stylesheet" href="Hoja de estilo corrector.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jardín de Especies - BioPhysics 4.0</title>
+  <link rel="stylesheet" href="Hoja de estilo corrector.css">
+
+  <style>
+    :root{
+      --color-neon:#38bdf8;
+      --color-gold:#fbbf24;
+      --color-error:#ef4444;
+      --color-bg-deep:#020617;
+      --color-bg-panel:rgba(15,23,42,0.95);
+      --color-border:rgba(56,189,248,0.2);
+      --font-ui:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    }
+
+    body{
+      margin:0;padding:0;overflow:hidden;
+      font-family:var(--font-ui);
+      background:var(--color-bg-deep);
+      user-select:none;color:#e2e8f0;
+    }
+
+    #jardin-container{
+      position:fixed;top:0;left:0;width:100vw;height:100vh;
+      background:radial-gradient(circle at center,#1e293b 0%,#0f172a 60%,#020617 100%);
+      overflow:hidden;z-index:1;cursor:crosshair;
+    }
+
+    .ui-btn{
+      background:var(--color-bg-panel);
+      border:1px solid var(--color-border);
+      color:#cbd5e1;
+      padding:10px 20px;border-radius:12px;cursor:pointer;font-size:.9rem;
+      display:inline-flex;align-items:center;gap:8px;transition:all .2s ease;
+      backdrop-filter:blur(8px);font-weight:600;text-decoration:none;
+      box-shadow:0 4px 6px rgba(0,0,0,.3);
+    }
+    .ui-btn:hover{border-color:var(--color-neon);color:#fff;transform:translateY(-1px);}
+
+    .top-right-ui{position:absolute;top:20px;right:20px;z-index:2000;}
+    .top-left-ui{position:absolute;top:20px;left:20px;z-index:2000;}
+    .bottom-left-ui{position:absolute;bottom:30px;left:30px;z-index:2100;}
+
+    .dna-counter{
+      background:rgba(15,23,42,.9);
+      border:1px solid var(--color-neon);
+      color:var(--color-neon);
+      padding:8px 16px;border-radius:50px;font-family:monospace;font-size:1.1rem;font-weight:700;
+      display:flex;align-items:center;gap:10px;
+    }
+
+    #shop-container{
+      position:absolute;bottom:80px;left:30px;
+      width:380px;
+      background:var(--color-bg-panel);
+      border:1px solid var(--color-border);
+      border-radius:16px;padding:20px;
+      transform:translateY(120%);
+      transition:transform .4s cubic-bezier(.175,.885,.32,1.275);
+      z-index:2050;display:flex;flex-direction:column;gap:12px;
+      max-height:60vh;overflow-y:auto;
+      box-shadow:0 10px 30px rgba(0,0,0,.5);
+    }
+    #shop-container.abierto{transform:translateY(0);}
+    .shop-header{
+      color:#fff;font-weight:700;border-bottom:1px solid #334155;padding-bottom:10px;
+      display:flex;justify-content:space-between;align-items:center;
+    }
+
+    .shop-item{
+      display:grid;
+      grid-template-columns:50px 1fr 110px;
+      align-items:center;gap:15px;
+      background:rgba(30,41,59,.5);
+      padding:12px;border-radius:12px;
+      border:1px solid rgba(255,255,255,.05);
+    }
+    .shop-item img{width:45px;height:45px;object-fit:contain;}
+    .shop-info{display:flex;flex-direction:column;justify-content:center;}
+    .shop-name{color:#f1f5f9;font-size:.95rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+    .status-text{font-size:.7rem;text-transform:uppercase;font-weight:700;margin-top:2px;}
+    .status-active{color:var(--color-neon);}
+    .status-hidden{color:#94a3b8;}
+    .status-locked{color:var(--color-gold);}
+    .status-error{color:var(--color-error);}
+
+    .btn-action{
+      width:100%;height:32px;border-radius:6px;border:none;
+      font-weight:700;font-size:.7rem;cursor:pointer;transition:.2s;
+      text-transform:uppercase;
+    }
+    .btn-buy{background:var(--color-gold);color:#0f172a;}
+    .btn-buy:disabled{background:#334155;color:#64748b;cursor:not-allowed;}
+    .btn-toggle{background:#1e293b;color:#cbd5e1;border:1px solid rgba(255,255,255,.1);}
+    .btn-toggle.active{background:var(--color-neon);color:#0f172a;border-color:var(--color-neon);}
+    .btn-hibernate{background:rgba(239,68,68,.1);color:var(--color-error);border:1px solid var(--color-error);cursor:not-allowed;}
+
+    .food-selector{
+      position:absolute;right:24px;top:50%;transform:translateY(-50%);
+      display:flex;flex-direction:column;gap:10px;z-index:2000;
+      background:rgba(15,23,42,.92);
+      border:1px solid rgba(56,189,248,.25);
+      padding:12px;border-radius:18px;
+      overflow:visible;
+    }
+    .food-opt{
+      width:220px;height:48px;border-radius:12px;
+      display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;
+      padding:0 14px;box-sizing:border-box;
+      background:rgba(255,255,255,.06);
+      border:2px solid transparent;
+      cursor:pointer;
+      overflow:visible;
+      transition:transform .15s ease,border-color .15s ease,background-color .15s ease;
+    }
+    .food-opt:hover{background:rgba(255,255,255,.10);transform:scale(1.02);}
+    .food-opt.selected{border-color:#fff;}
+    .food-opt img{
+      width:34px;height:34px;object-fit:contain;pointer-events:none;
+      filter:drop-shadow(0 0 6px rgba(255,255,255,.25));
+      flex:0 0 auto;
+    }
+    .food-label{
+      flex:1 1 auto;min-width:0;max-width:none;
+      font-size:.95rem;font-weight:800;color:#e2e8f0;letter-spacing:.2px;
+      white-space:nowrap;overflow:visible;text-overflow:clip;line-height:1;
+    }
+
+    .bacteria-visual{
+      position:absolute;background-size:contain;background-repeat:no-repeat;background-position:center;
+      pointer-events:none;will-change:transform;z-index:10;
+    }
+
+    /* --- COMIDA EN EL MUNDO (PNG) --- */
+    .food-particle{
+      position:absolute;
+      width:47px;height:47px;
+      pointer-events:none;
+      background-size:contain;background-repeat:no-repeat;background-position:center;
+      z-index:5;
+      filter:drop-shadow(0 0 10px var(--glow, rgba(255,255,255,0.6)));
+      animation: foodSpawnPop 220ms ease-out, pulseFood 2s infinite 220ms;
+    }
+    @keyframes pulseFood{50%{transform:scale(1.15);opacity:1;}}
+    @keyframes foodSpawnPop{
+      0%{transform:scale(0.35);opacity:0;}
+      60%{transform:scale(1.45);opacity:1;}
+      100%{transform:scale(1.00);opacity:1;}
+    }
+
+    .float-msg{
+      position:absolute;color:#fff;font-weight:700;font-size:1rem;pointer-events:none;
+      animation:floatUp 1.5s forwards;text-shadow:0 2px 4px rgba(0,0,0,.8);z-index:3000;
+    }
+    @keyframes floatUp{0%{opacity:0;transform:translateY(10px);}100%{opacity:0;transform:translateY(-40px);}}
+
+    #hint-msg{
+      position:absolute;top:30px;left:50%;transform:translateX(-50%);
+      color:rgba(255,255,255,.6);font-size:.9rem;text-transform:uppercase;letter-spacing:1px;
+      pointer-events:none;z-index:1500;animation:hintPulse 4s infinite;text-align:center;
+    }
+    @keyframes hintPulse{50%{opacity:.5;}}
+  </style>
 </head>
-<body class="pagina-interna" id="pag1">
 
-    <section class="contenido-interno">
-        <h1>Sección: Inicio</h1>
-        <p>Aquí va el contenido de la página 1.</p>
-        
-        <a href="index.html" class="boton-volver">⬅ Volver al Menú</a>
-    </section>
-<div id="zona-guardado" style="position: absolute; top: 20px; right: 20px; z-index: 1000;">
-    <button onclick="guardarPartidaManual()" class="btn-guardar">
-        💾 Guardar Progreso
-    </button>
-    <span id="mensaje-confirmacion" style="display:none; color: #4ade80; font-weight: bold; margin-left: 10px; text-shadow: 0 0 5px black;">
-        ¡Partida Guardada!
-    </span>
-</div>
+<body>
+  <div class="top-left-ui">
+    <div class="dna-counter" id="dna-container">
+      <span class="dna-icon">🧬</span>
+      <span id="puntos-adn-display">0</span>
+    </div>
+  </div>
 
-<style>
-    .btn-guardar {
-        background: rgba(0, 0, 0, 0.5);
-        border: 2px solid white;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 30px;
-        cursor: pointer;
-        font-family: sans-serif;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(5px);
+  <div id="hint-msg">Alimenta a las bacterias haciendo click</div>
+
+  <div class="top-right-ui">
+    <a href="index.html" class="ui-btn">⬅ Regresar</a>
+  </div>
+
+  <div class="bottom-left-ui">
+    <button id="btn-toggle-tienda" class="ui-btn" onclick="toggleTienda()">🛒 Catálogo</button>
+  </div>
+
+  <div id="shop-container">
+    <div class="shop-header">
+      <span>Laboratorio Genético</span>
+      <span id="shop-count" style="font-size: 0.8rem; color: #94a3b8;">--/7</span>
+    </div>
+    <div id="lista-productos"></div>
+  </div>
+
+  <div class="food-selector" id="food-selector">
+    <div class="food-opt selected" onclick="selectFood(0)" data-name="Glucosa">
+      <img src="Assets/food_glucosa2.png" alt="Glucosa">
+      <span class="food-label">Glucosa</span>
+    </div>
+
+    <div class="food-opt" onclick="selectFood(1)" data-name="Polisacáridos">
+      <img src="Assets/food_almidon.png" alt="Almidón">
+      <span class="food-label">Almidón</span>
+    </div>
+
+    <div class="food-opt" onclick="selectFood(2)" data-name="Disacáridos">
+      <img src="Assets/food_lactosa.png" alt="Lactosa">
+      <span class="food-label">Lactosa</span>
+    </div>
+
+    <div class="food-opt" onclick="selectFood(3)" data-name="Lípidos">
+      <img src="Assets/food_colesterol.png" alt="Lípidos">
+      <span class="food-label">Colesterol</span>
+    </div>
+  </div>
+
+  <div id="jardin-container"></div>
+
+  <script>
+    // --- 1. CONFIGURACIÓN ---
+    const FOOD_TYPES = [
+      { id: 0, name: "Glucosa",                 glow: "#facc15", icon: "Assets/food_glucosa2.png" },
+      { id: 1, name: "Polisacáridos (almidón)", glow: "#22c55e", icon: "Assets/food_almidon.png" },
+      { id: 2, name: "Disacáridos (lactosa)",   glow: "#60a5fa", icon: "Assets/food_lactosa.png" },
+      { id: 3, name: "Lípidos (colesterol)",    glow: "#f472b6", icon: "Assets/food_colesterol.png" }
+    ];
+
+    // ✅ RECUPERADO: algunas especies se renderizan como COLONIA (varios sprites).
+    // Mantienes TODOS los movements nuevos. La colonia ahora es un atributo separado: colony: true/false
+    const SPECIES_DATA = [
+      { id: 1, cost: 0,    name: "Escherichia Coli",          sprite: "Assets/Microbact1.png",  speed: 1.5, movement: "run_tumble",     diet: [0, 2], colony: false },
+      { id: 2, cost: 200,  name: "Salmonela",                 sprite: "Assets/Microbact8.png",  speed: 5.0, movement: "burst_hunter",   diet: [0, 2], colony: false },
+      { id: 3, cost: 400,  name: "Treponema Pallidum",        sprite: "Assets/Microbact9.png",  speed: 2.5, movement: "corkscrew",      diet: [2, 3], colony: false },
+
+      // 👇 (como en tu versión antigua: 4 y 7 eran colonia)
+      { id: 4, cost: 600,  name: "Staphylococcus Aureus",     sprite: "Assets/Microbact15.png", speed: 1.0, movement: "cluster",         diet: [0, 2], colony: true  },
+
+      { id: 5, cost: 800,  name: "Helicobacter Pylori",       sprite: "Assets/Microbact14.png", speed: 0.5, movement: "mucus_drift",      diet: [2, 3], colony: false },
+      { id: 6, cost: 1000, name: "Verrucomicrobium Spinosum", sprite: "Assets/Microbact13.png", speed: 3.0, movement: "spiny_orbit",      diet: [1, 2], colony: false },
+
+      { id: 7, cost: 1200, name: "Bacillus Anthracis",        sprite: "Assets/Microbact12.png", speed: 0.8, movement: "colony_filament",  diet: [1, 2, 0], colony: true }
+    ];
+
+    const contenedor = document.getElementById('jardin-container');
+    const displayPuntos = document.getElementById('puntos-adn-display');
+    const listaProductos = document.getElementById('lista-productos');
+    const shopContainer = document.getElementById('shop-container');
+
+    let puntosADN = 0;
+    let savedData = { unlocked: [1], active: [1] };
+    let entidades = [];
+    let comidas = [];
+    let currentFoodId = 0;
+
+    // --- 2. CARGA Y SINCRONIZACIÓN ---
+    function cargarSistema() {
+      let petriSave = null;
+      try { petriSave = JSON.parse(localStorage.getItem('BacterialFarm_Save1')); }
+      catch(e) { petriSave = null; }
+
+      if (!petriSave || typeof petriSave !== 'object' || !petriSave.cajas) {
+        const fallbacks = ['BacterialFarm_PetriSave', 'BacterialFarm_PetriData', 'BacterialFarm_Petri'];
+        for (const k of fallbacks) {
+          try {
+            const tmp = JSON.parse(localStorage.getItem(k));
+            if (tmp && typeof tmp === 'object' && tmp.cajas) { petriSave = tmp; break; }
+          } catch(e) {}
+        }
+      }
+
+      petriSave = (petriSave && typeof petriSave === 'object') ? petriSave : { cajas: {} };
+
+      let muestrasCompletas = 0;
+      if (petriSave.cajas) {
+        for (const key in petriSave.cajas) {
+          if (petriSave.cajas[key].completada) muestrasCompletas++;
+        }
+      }
+
+      puntosADN = muestrasCompletas * 100;
+      displayPuntos.innerText = puntosADN;
+
+      const gardenLocalRaw = localStorage.getItem('BacterialFarm_GardenSave');
+      if (gardenLocalRaw) {
+        try {
+          const gardenLocal = JSON.parse(gardenLocalRaw);
+          if (gardenLocal && typeof gardenLocal === 'object') savedData = gardenLocal;
+        } catch(e) {}
+      }
+
+      savedData.unlocked = Array.isArray(savedData.unlocked) ? savedData.unlocked : [1];
+      savedData.active   = Array.isArray(savedData.active)   ? savedData.active   : [1];
+
+      const activasValidas = [];
+      savedData.active.forEach(id => {
+        const especie = SPECIES_DATA.find(s => s.id === id);
+        if (especie && puntosADN >= especie.cost) activasValidas.push(id);
+      });
+      savedData.active = activasValidas;
+      guardarEstado();
+
+      actualizarMundo();
+      renderizarTienda();
+      loop();
     }
 
-    .btn-guardar:hover {
-        background: rgba(74, 222, 128, 0.3); /* Verde al pasar el mouse */
-        border-color: #4ade80;
-        transform: scale(1.1);
+    function guardarEstado() {
+      localStorage.setItem('BacterialFarm_GardenSave', JSON.stringify(savedData));
     }
 
-    .btn-guardar:active {
-        transform: scale(0.95);
-    }
-</style>
+    // --- 3. MOTOR DE ENTIDADES ---
+    function actualizarMundo() {
+      (savedData.active || []).forEach(id => {
+        if (!entidades.find(e => e.data.id === id)) spawnEntidad(id);
+      });
 
-<script>
-    // --- CONFIGURACIÓN DE ESTE NIVEL ---
-    const DATOS_NIVEL = {
-        nombre: "El Jardín",              // <--- CAMBIA ESTO SEGÚN LA PÁGINA
-        imagen: "Assets/boton4.png",      // <--- LA FOTO QUE SE VERÁ AL CARGAR
-        url: window.location.href         // Guarda la dirección actual
+      entidades = entidades.filter(e => {
+        if (!savedData.active.includes(e.data.id)) {
+          e.destruir();
+          return false;
+        }
+        return true;
+      });
+    }
+
+    function spawnEntidad(id) {
+      const data = SPECIES_DATA.find(s => s.id === id);
+      if (data) entidades.push(new Entidad(data));
+    }
+
+    class Entidad {
+      constructor(data) {
+        this.data = data;
+
+        this.x = window.innerWidth / 2 + (Math.random() - 0.5) * 200;
+        this.y = window.innerHeight / 2 + (Math.random() - 0.5) * 200;
+        this.angle = Math.random() * 360;
+        this.spriteAngle = 0;
+
+        this.vx = 0; this.vy = 0;
+        this.targetFood = null;
+        this.state = 'IDLE';
+        this.timer = Math.random() * 100;
+
+        // ✅ Colonia visual (separada del movement)
+        this.isColony = !!this.data.colony;
+
+        this.elements = [];
+
+        if (this.isColony) {
+          const count = 5; // igual que tu versión vieja
+          for (let i = 0; i < count; i++) {
+            const el = this.crearSprite(data.sprite, 40 + Math.random() * 20);
+            el.offsetX = (Math.random() - 0.5) * 80;
+            el.offsetY = (Math.random() - 0.5) * 80;
+            el.noiseOffset = Math.random() * 100;
+            el.rotOffset = (Math.random() - 0.5) * 40;
+            this.elements.push(el);
+            contenedor.appendChild(el.dom);
+          }
+        } else {
+          const el = this.crearSprite(data.sprite, 80);
+          this.elements.push(el);
+          contenedor.appendChild(el.dom);
+        }
+      }
+
+      crearSprite(src, size) {
+        const div = document.createElement('div');
+        div.className = 'bacteria-visual';
+        div.style.backgroundImage = `url('${src}')`;
+        div.style.width = `${size}px`;
+        div.style.height = `${size}px`;
+        return { dom: div, offsetX: 0, offsetY: 0, noiseOffset: 0, rotOffset: 0 };
+      }
+
+      destruir() { this.elements.forEach(el => el.dom.remove()); }
+
+      update() {
+        this.timer += 0.05;
+
+        if (!this.targetFood && comidas.length > 0) this.buscarComida();
+        if (this.targetFood && !comidas.includes(this.targetFood)) { this.targetFood = null; this.state = 'IDLE'; }
+
+        let targetSpeed = this.data.speed;
+        let turnRate = 0.05;
+
+        if (this.state === 'SEEKING' && this.targetFood) {
+          const dx = this.targetFood.x - this.x;
+          const dy = this.targetFood.y - this.y;
+          const dist = Math.hypot(dx, dy);
+          const targetAngle = Math.atan2(dy, dx);
+
+          targetSpeed = this.data.speed * 1.7;
+          turnRate = 0.09;
+
+          if (this.data.movement === 'burst_hunter') {
+            targetSpeed = this.data.speed * 3.0;
+            turnRate = 0.07;
+          }
+
+          this.angle = lerpAngle(this.angle * (Math.PI/180), targetAngle, turnRate) * (180/Math.PI);
+
+          if (dist < 30) this.comer();
+
+        } else {
+          switch (this.data.movement) {
+            case 'burst_hunter': {
+              const cycle = Math.sin(this.timer * 2.2);
+              targetSpeed = (cycle > 0.55) ? this.data.speed * 2.6 : this.data.speed * 0.25;
+              if (cycle < 0) this.angle += (Math.random() - 0.5) * 18;
+              this.spriteAngle = this.angle + 90;
+              break;
+            }
+            case 'run_tumble': {
+              if (Math.random() < 0.025) this.angle += (Math.random() - 0.5) * 140;
+              targetSpeed = this.data.speed * 1.1;
+              this.spriteAngle = this.angle + 90;
+              break;
+            }
+            case 'corkscrew': {
+              this.angle += 2.2;
+              this.spriteAngle += 8;
+              targetSpeed = this.data.speed * 1.0;
+              break;
+            }
+            case 'mucus_drift': {
+              targetSpeed = this.data.speed * 0.9;
+              if (Math.random() < 0.02) this.angle += (Math.random() - 0.5) * 220;
+              this.spriteAngle += 3.5;
+              break;
+            }
+            case 'spiny_orbit': {
+              this.angle += 1.6;
+              this.spriteAngle += 6.5;
+              targetSpeed = this.data.speed * (0.9 + 0.2 * Math.sin(this.timer));
+              break;
+            }
+            case 'cluster': {
+              targetSpeed = this.data.speed * 0.95;
+              this.angle += (Math.random() - 0.5) * 4;
+              this.spriteAngle = this.angle + 90;
+              break;
+            }
+            case 'colony_filament': {
+              targetSpeed = this.data.speed * 0.85;
+              if (Math.random() < 0.015) this.angle += (Math.random() - 0.5) * 80;
+              this.spriteAngle = this.angle + 90;
+              break;
+            }
+            default: {
+              this.angle += (Math.random() - 0.5) * 5;
+              this.spriteAngle = this.angle + 90;
+            }
+          }
+        }
+
+        const rad = this.angle * (Math.PI / 180);
+        this.vx = Math.cos(rad) * targetSpeed;
+        this.vy = Math.sin(rad) * targetSpeed;
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.x < 0) { this.x = 0; this.angle = 180 - this.angle; }
+        if (this.x > window.innerWidth) { this.x = window.innerWidth; this.angle = 180 - this.angle; }
+        if (this.y < 0) { this.y = 0; this.angle = 360 - this.angle; }
+        if (this.y > window.innerHeight) { this.y = window.innerHeight; this.angle = 360 - this.angle; }
+
+        // ✅ Render: colonia vs individual
+        this.elements.forEach(el => {
+          let finalX = this.x + el.offsetX;
+          let finalY = this.y + el.offsetY;
+          let finalRot = this.spriteAngle;
+
+          if (this.isColony) {
+            // “Respiración” + ruido suave como antes
+            finalX += Math.sin(this.timer * 1.1 + el.noiseOffset) * 6;
+            finalY += Math.cos(this.timer * 1.1 + el.noiseOffset) * 6;
+            finalRot = (this.spriteAngle || (this.angle + 90)) + Math.sin(this.timer + el.noiseOffset) * 10 + el.rotOffset;
+          }
+
+          el.dom.style.transform = `translate(${finalX}px, ${finalY}px) rotate(${finalRot}deg)`;
+        });
+      }
+
+      buscarComida() {
+        const dieta = this.data.diet;
+        let masCerca = null;
+        let distMin = Infinity;
+
+        comidas.forEach(c => {
+          if (dieta.includes(c.type)) {
+            const dist = Math.hypot(c.x - this.x, c.y - this.y);
+            if (dist < distMin) { distMin = dist; masCerca = c; }
+          }
+        });
+
+        if (masCerca) { this.targetFood = masCerca; this.state = 'SEEKING'; }
+      }
+
+      comer() {
+        if (!this.targetFood) return;
+        spawnFloatingText("¡Ñam!", this.x, this.y, '#4ade80');
+        eliminarComida(this.targetFood);
+        this.targetFood = null;
+        this.state = 'IDLE';
+
+        this.elements.forEach(el => {
+          el.dom.style.filter = "brightness(2) drop-shadow(0 0 10px white)";
+          setTimeout(() => el.dom.style.filter = "none", 200);
+        });
+      }
+    }
+
+    function lerpAngle(a, b, t) {
+      let diff = b - a;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      return a + diff * t;
+    }
+
+    // --- 4. UI Y EVENTOS ---
+    function selectFood(id) {
+      currentFoodId = id;
+      const opts = document.querySelectorAll('.food-opt');
+      opts.forEach(el => el.classList.remove('selected'));
+      if (opts[id]) opts[id].classList.add('selected');
+    }
+
+    contenedor.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.ui-btn') || e.target.closest('#shop-container') || e.target.closest('.food-selector')) return;
+      spawnComida(e.clientX, e.clientY, currentFoodId);
+    });
+
+    function spawnComida(x, y, typeId) {
+      const type = FOOD_TYPES[typeId];
+      if (!type) return;
+
+      const div = document.createElement('div');
+      div.className = 'food-particle';
+
+      // ✅ centra usando el tamaño REAL (47px)
+      const size = 47;
+      div.style.left = (x - size/2) + 'px';
+      div.style.top  = (y - size/2) + 'px';
+
+      div.style.backgroundImage = `url('${type.icon}')`;
+      div.style.setProperty('--glow', type.glow);
+
+      contenedor.appendChild(div);
+      comidas.push({ x, y, type: typeId, dom: div });
+    }
+
+    function eliminarComida(comidaObj) {
+      const idx = comidas.indexOf(comidaObj);
+      if (idx > -1) {
+        comidas.splice(idx, 1);
+        if (comidaObj.dom) comidaObj.dom.remove();
+      }
+    }
+
+    function toggleTienda() {
+      shopContainer.classList.toggle('abierto');
+      renderizarTienda();
+    }
+
+    function renderizarTienda() {
+      listaProductos.innerHTML = '';
+      document.getElementById('shop-count').innerText = `${(savedData.unlocked||[]).length}/7`;
+
+      SPECIES_DATA.forEach(s => {
+        const isUnlocked = (savedData.unlocked || []).includes(s.id);
+        const isActive = (savedData.active || []).includes(s.id);
+        const canAfford = puntosADN >= s.cost;
+        const hasEnergy = puntosADN >= s.cost;
+
+        const div = document.createElement('div');
+        div.className = 'shop-item';
+
+        let actionBtn = '';
+        let statusLabel = '';
+
+        if (isUnlocked) {
+          if (hasEnergy) {
+            statusLabel = isActive ?
+              '<span class="status-text status-active">En Escena</span>' :
+              '<span class="status-text status-hidden">Guardada</span>';
+
+            actionBtn = `
+              <button class="btn-action btn-toggle ${isActive ? 'active' : ''}"
+                onclick="toggleEspecie(${s.id})">
+                ${isActive ? '👁 Ocultar' : 'Mostrar'}
+              </button>`;
+          } else {
+            statusLabel = '<span class="status-text status-error">Sin Energía</span>';
+            actionBtn = `<button class="btn-action btn-hibernate" disabled>Comprar</button>`;
+          }
+        } else {
+          statusLabel = `<span class="status-text status-locked">${s.cost} PTS</span>`;
+          actionBtn = `
+            <button class="btn-action btn-buy"
+              ${canAfford ? '' : 'disabled'}
+              onclick="comprarEspecie(${s.id})">
+              ${canAfford ? '🛒 Comprar' : 'Bloqueado'}
+            </button>`;
+        }
+
+        div.innerHTML = `
+          <img src="${s.sprite}" alt="bact">
+          <div class="shop-info">
+            <span class="shop-name">${s.name}</span>
+            ${statusLabel}
+          </div>
+          <div class="shop-controls">
+            ${actionBtn}
+          </div>
+        `;
+        listaProductos.appendChild(div);
+      });
+    }
+
+    window.comprarEspecie = function(id) {
+      const s = SPECIES_DATA.find(x => x.id === id);
+      if (!s) return;
+
+      if (puntosADN >= s.cost) {
+        if (!savedData.unlocked.includes(id)) savedData.unlocked.push(id);
+        if (!savedData.active) savedData.active = [];
+        if (!savedData.active.includes(id)) savedData.active.push(id);
+
+        guardarEstado();
+        renderizarTienda();
+        actualizarMundo();
+        spawnFloatingText(`¡${s.name} Activa!`, window.innerWidth/2, window.innerHeight-100, '#38bdf8');
+      }
     };
 
-    function guardarPartidaManual() {
-        // 1. Preparamos los datos
-        const savegame = {
-            nivel: DATOS_NIVEL.nombre,
-            imagen: DATOS_NIVEL.imagen,
-            url: DATOS_NIVEL.url,
-            fecha: new Date().toLocaleString('es-ES', { hour12: true })
-        };
+    window.toggleEspecie = function(id) {
+      if (!savedData.active) savedData.active = [];
+      const idx = savedData.active.indexOf(id);
+      if (idx > -1) savedData.active.splice(idx, 1);
+      else savedData.active.push(id);
 
-        // 2. Guardamos en el navegador
-        localStorage.setItem('BacterialFarm_Save1', JSON.stringify(savegame));
-        console.log("Guardado manual exitoso");
+      guardarEstado();
+      renderizarTienda();
+      actualizarMundo();
+    };
 
-        // 3. Feedback visual (Mensaje de "Guardado!")
-        const mensaje = document.getElementById('mensaje-confirmacion');
-        const boton = document.querySelector('.btn-guardar');
-        
-        mensaje.style.display = "inline"; // Mostrar mensaje
-        boton.style.borderColor = "#4ade80"; // Poner borde verde al botón
-        boton.innerText = "✔ Guardado";
-
-        // Ocultar mensaje después de 2 segundos y volver a la normalidad
-        setTimeout(() => {
-            mensaje.style.display = "none";
-            boton.style.borderColor = "white";
-            boton.innerText = "💾 Guardar Progreso";
-        }, 2000);
+    function spawnFloatingText(text, x, y, color) {
+      const d = document.createElement('div');
+      d.className = 'float-msg';
+      d.style.left = x + 'px';
+      d.style.top  = y + 'px';
+      d.style.color = color;
+      d.innerText = text;
+      document.body.appendChild(d);
+      setTimeout(() => d.remove(), 1500);
     }
-</script>
-</body>
-</html>
+
+    function loop() {
+      entidades.forEach(e => e.update());
+      requestAnimationFrame(loop);
+    }
+
+    cargarSistema();
+  </script>
+
+  <script src="audio-manager.js"></script>
+  <script>iniciarMusicaPagina(2);</script>
+
+  <script src="hud-manager.js"></script>
+  <script>actualizarEscalaHUD('mm', 1.8);</script>
 </body>
 </html>

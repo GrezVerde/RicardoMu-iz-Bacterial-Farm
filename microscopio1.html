@@ -10,13 +10,14 @@
         /* --- VARIABLES --- */
         :root {
             --color-neon: #4ade80;
+            --color-error: #ff5f56;
             --color-dark-bg: rgba(15, 15, 15, 0.95);
             --color-border: rgba(255, 255, 255, 0.15);
         }
 
         body { margin: 0; padding: 0; overflow: hidden; font-family: 'Segoe UI', Roboto, sans-serif; background: #000; user-select: none; }
         
-        /* --- UI ESTILOS --- */
+        /* --- UI GENERAL --- */
         .ui-btn {
             background: var(--color-dark-bg);
             border: 1px solid var(--color-border);
@@ -42,6 +43,101 @@
 
         .top-right-ui { position: absolute; top: 20px; right: 20px; z-index: 2000; }
         .bottom-left-ui { position: absolute; bottom: 30px; left: 30px; z-index: 2000; }
+        
+        /* --- NUEVO: PANTALLA DE BLOQUEO (SIN MUESTRAS) --- */
+        #bloqueo-sin-muestras {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.95); /* Casi opaco */
+            z-index: 5000; /* Por encima de todo */
+            display: flex; flex-direction: column; 
+            justify-content: center; align-items: center;
+            display: none; /* Oculto por defecto */
+        }
+        
+        .caja-alerta {
+            background: #1a1a1a; padding: 40px; border-radius: 20px;
+            border: 2px solid var(--color-error);
+            text-align: center; color: white;
+            box-shadow: 0 0 50px rgba(255, 95, 86, 0.3);
+            max-width: 500px;
+        }
+
+        .caja-alerta h1 { margin-top: 0; color: var(--color-error); font-size: 2rem; text-transform: uppercase; }
+        .caja-alerta p { font-size: 1.1rem; line-height: 1.6; color: #ccc; margin-bottom: 30px; }
+        
+        .btn-accion-urgente {
+            background: var(--color-error); color: white; border: none;
+            padding: 15px 30px; font-size: 1.1rem; font-weight: bold;
+            border-radius: 50px; cursor: pointer; transition: transform 0.2s;
+            text-decoration: none; display: inline-block;
+        }
+        .btn-accion-urgente:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(255, 95, 86, 0.6); }
+
+
+        /* --- SELECTOR LATERAL DE MUESTRAS --- */
+        #selector-muestras {
+            position: absolute;
+            top: 50%; left: 20px;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 2000;
+            background: rgba(0,0,0,0.6);
+            padding: 10px;
+            border-radius: 15px;
+            border: 1px solid var(--color-border);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .btn-muestra {
+            width: 35px; height: 35px;
+            border-radius: 50%;
+            border: 1px solid #444;
+            background: #222;
+            color: #666;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .btn-muestra:hover { transform: scale(1.1); }
+
+        .btn-muestra.cultivada {
+            background: rgba(74, 222, 128, 0.2);
+            color: var(--color-neon);
+            border-color: var(--color-neon);
+            box-shadow: 0 0 5px rgba(74, 222, 128, 0.4);
+        }
+
+        .btn-muestra.vacia {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-muestra.seleccionada {
+            background: var(--color-neon);
+            color: #000;
+            border-color: #fff;
+            box-shadow: 0 0 15px var(--color-neon);
+            transform: scale(1.2);
+        }
+
+        #etiqueta-muestra {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.7); color: white;
+            padding: 5px 15px; border-radius: 20px; font-family: monospace;
+            z-index: 2000; pointer-events: none; border: 1px solid #555;
+        }
+
+        #mensaje-vacio {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: rgba(255,255,255,0.3); font-size: 2rem; font-weight: bold;
+            pointer-events: none; z-index: 50; display: none; text-align: center;
+        }
 
         /* --- MICROSCOPIO --- */
         #microscopio-container {
@@ -65,7 +161,6 @@
             pointer-events: auto;
             cursor: pointer; will-change: transform;
         }
-        /* Hitbox ampliado para facilitar clic */
         .bacteria::after {
             content: ''; position: absolute;
             top: -20px; left: -20px; right: -20px; bottom: -20px;
@@ -74,7 +169,7 @@
             filter: drop-shadow(0 0 8px var(--color-neon)); z-index: 100;
         }
 
-        /* --- OVERLAY --- */
+        /* --- OVERLAY LENTE --- */
         #lente-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             z-index: 100; pointer-events: none;
@@ -83,11 +178,21 @@
 
         /* --- CONTROLES ZOOM --- */
         #controles-zoom {
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            z-index: 2000; display: flex; gap: 8px;
-            background: var(--color-dark-bg); padding: 8px 12px;
-            border-radius: 50px; border: 1px solid var(--color-border);
-        }
+    position: fixed;
+    right: 30px;
+    bottom: 140px;          /* súbelo para que no choque con la regla */
+    z-index: 2500;
+
+    display: flex;          /* ✅ horizontal */
+    flex-direction: row;
+    gap: 8px;
+
+    background: var(--color-dark-bg);
+    padding: 10px 12px;
+    border-radius: 50px;
+    border: 1px solid var(--color-border);
+}
+
         .btn-zoom {
             width: 45px; height: 45px; border-radius: 50%;
             border: 1px solid transparent; background: rgba(255,255,255,0.05);
@@ -113,7 +218,7 @@
             position: relative; width: 80vw; max-width: 700px; aspect-ratio: 4/3;
             background: #222; border-radius: 15px; border: 2px solid #444;
             overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            display: flex; flex-direction: column; /* Para organizar contenido */
+            display: flex; flex-direction: column; 
         }
         .btn-cerrar {
             position: absolute; top: 15px; right: 15px; width: 35px; height: 35px;
@@ -121,7 +226,6 @@
             font-weight: bold; font-size: 1.2rem; cursor: pointer; z-index: 10;
         }
         
-        /* Estilos internos del modal */
         .modal-content {
             width: 100%; height: 100%;
             display: flex; flex-direction: column;
@@ -141,18 +245,33 @@
 
 <body id="pag1">
 
+    <div id="bloqueo-sin-muestras">
+        <div class="caja-alerta">
+            <h1>⚠ Sin Muestras Activas</h1>
+            <p>No se han detectado cultivos bacterianos en las placas Petri. El microscopio no puede funcionar sin muestras biológicas.</p>
+            <p>Debes generar un cultivo primero.</p>
+            <a href="petri.html" class="btn-accion-urgente">Ir a Cultivar 🧫</a>
+        </div>
+    </div>
+
     <div id="microscopio-container">
         <div id="portaobjetos" class="suavizar-zoom"></div>
+        <div id="mensaje-vacio">MUESTRA SIN CULTIVO<br><span style="font-size:1rem; font-weight:normal;">Regresa a la mesa para cultivarla</span></div>
     </div>
     <div id="lente-overlay"></div>
 
+    <div id="selector-muestras">
+        </div>
+
+    <div id="etiqueta-muestra">Muestra Activa: #--</div>
+
     <div class="top-right-ui">
-        <button onclick="guardarPartidaManual()" class="ui-btn" id="btn-guardar-ui">💾 Guardar</button>
+        <button onclick="guardarPartidaManual()" class="ui-btn" id="btn-guardar-ui">💾 Guardar Estado</button>
         <span id="msg-guardado" style="display:none; color: var(--color-neon); margin-left: 10px; font-weight:bold;">¡Guardado!</span>
     </div>
 
     <div class="bottom-left-ui">
-        <a href="index.html" class="ui-btn">⬅ Menú Principal</a>
+        <a href="petri.html" class="ui-btn">⬅ Regresar a Mesa Petri</a>
     </div>
 
     <div id="controles-zoom">
@@ -167,205 +286,160 @@
             <button class="btn-cerrar" onclick="cerrarModal()">×</button>
             <div class="modal-content">
                 <img id="modal-img" src="" alt="Detalle Bacteria">
-                
-                <h2 id="modal-titulo">Título de la Bacteria</h2>
-                
-                <p id="modal-desc">Descripción breve del comportamiento y estructura biológica.</p>
+                <h2 id="modal-titulo">Título</h2>
+                <p id="modal-desc">Descripción.</p>
             </div>
         </div>
     </div>
 
 <script>
-    // --- 1. BASE DE DATOS DE BACTERIAS ---
-    // AQUÍ EDITAS LA INFORMACIÓN DE CADA UNA
-    // 'sprite': La imagen pequeña que se mueve.
-    // 'infoImg': La imagen grande que sale al dar click (puede ser la misma u otra tipo carta).
-    // 'titulo' y 'desc': Texto del modal.
-    
+    // --- 0. LÓGICA DE MUESTRAS Y RECETAS ---
+    const RECETAS_BIOLOGICAS = {
+        1: { 5: 1.0 },                      // 100% Lactobacillus
+        2: { 0: 0.8, 2: 0.2 },              // E. Coli + Salmonella
+        3: { 3: 0.7, 1: 0.3 },              // Pseudomona + Tuberculosis
+        4: { 4: 1.0 },                      // 100% Estreptococos
+        5: { 6: 0.9, 1: 0.1 },              // Treponema + Tuberculosis
+        6: { 2: 0.5, 3: 0.5 },              // Mix Rápido
+        7: { 0: 0.2, 1: 0.2, 4: 0.2, 6: 0.4 } // Caos
+    };
+
     const CATALOGO_BACTERIAS = [
-        {   // Índice 0: Lenta
-            sprite: 'Assets/Microbact1.png',
-            infoImg: 'Assets/real_Ecoli.png', 
-            titulo: 'Escherichia Coli',
-            desc: 'Tipo bacilo, se reproduce increíblemente rápido (se duplica cada 20 minutos en condiciones ideales), lo que permite ver resultados de experimentos en pocas horas. Se le insertan genes humanos (usando plásmidos) para que fabrique insulina artificial para los diabéticos.'
-        },
-        {   // Índice 1: Lenta
-            sprite: 'Assets/Microbact3.png',
-            infoImg: 'Assets/real_klebsiella.png',
-            titulo: 'Klebsiella Pneumoniae',
-            desc: 'Tipo bacilo, Se mueve únicamente por movimiento browniano. Tiene una cápsula defensiva de moco resbaladizo que a los glóbulos blancos se les hace casi imposible agarrarla para comérsela. '
-        },
-        {   // Índice 2: Rápida (Flagelada)
-            sprite: 'Assets/Microbact5.png',
-            infoImg: 'Assets/real_salmonella.png',
-            titulo: 'Salmonella',
-            desc: 'Tipo bacilo, La Salmonella tiene flagelos cubriendo todo su cuerpo. No solo usa sus flagelos para nadar sino como sensores. Nada velozmente a través de tus intestinos buscando el lugar perfecto para aterrizar. Una vez que llega a la pared del intestino, usa esa velocidad para chocar, adherirse y comenzar la infección'
-        },
-        {   // Índice 3: Rápida (Flagelada)
-            sprite: 'Assets/Microbact7.png',
-            infoImg: 'Assets/real_pseudomona.png',
-            titulo: 'Pseudomona Aeruginosa',
-            desc: 'Tipo bacilo, Se encuentra en casi cualquier lugar donde haya agua o humedad: suelo, piscinas, fregaderos y hospitales. En la base de la cola tiene un motor rotatorio real. Es una máquina hecha de proteínas que gira a miles de revoluciones por minuto.'
-        },
-        {   // Índice 4: Colonia
-            sprite: 'Assets/Microbact6.png',
-            infoImg: 'Assets/real_streptococo.png',
-            titulo: 'Estreptococos',
-            desc: 'Tipo coco, Son bacterias con forma de esfera perfecta (cocos). Lo especial no es la esfera en sí, sino cómo se organizan. Su nombre viene del griego streptos, que significa "cadena retorcida. Al dividirse no se terminan de soltar formando largas filas. Es el culpable de las infecciones de garganta dolorosas (faringitis) y la fiebre escarlatina.'
-        },
-        {   // Índice 5: Colonia
-            sprite: 'Assets/Microbact4.png',
-            infoImg: 'Assets/real_lactobacilus.png',
-            titulo: 'Lactobacillus',
-            desc: 'Tipo bacilo, A menudo les gusta vivir conectadas, formando largas cadenas. Se alimentan de azúcares (como la lactosa de la leche). No producen toxinas, sino ácido láctico para eliminar bacterias competidoras por el alimento. Son los responsables de convertir la leche líquida en yogur y el queso y habitan en el intestino y boca humana. Se les considera como una bacteria buena o Probiotica'
-        },
-        {   // Índice 6: Lenta
-            sprite: 'Assets/Microbact2.png',
-            infoImg: 'Assets/real_tuberculosis.png',
-            titulo: 'Mycobacterium tuberculosis',
-            desc: 'Tipo bacilo, Tarda casi un día entero (20 horas) en dividirse una sola vez. Su pared celular no es normal es extraordinariamente gruesa y está hecha de ácidos micólicos. Esta capa de grasa la hace impermeable a casi todo antibioticos y desinfectantes incluidos. Puede permanecer lantente por años dentro de macrófagos en estado de Granuloma para desepertar si bajan lo suficiente las defensas'
-        }
+        { sprite: 'Assets/Microbact1.png', infoImg: 'Assets/real_Ecoli.png', titulo: 'Escherichia Coli', desc: 'Tipo bacilo, es la "celebridad" del mundo microscópico, es el organismo más estudiado por la ciencia. Es una bacteria con forma de bastón que vive naturalmente en los intestinos de los seres humanos y animales de sangre caliente. Gracias a su simplicidad, los científicos la usan como una "impresora biológica". Le insertan genes humanos (usando plásmidos) para que fabrique Insulina artificial para los diabéticos' },
+        { sprite: 'Assets/Microbact11.png', infoImg: 'Assets/real_tuberculosis.png', titulo: 'Mycobacterium Tuberculosis', desc: 'Tipo bacilo, es un bacilo muy delgado y recto. Tarda casi un día entero (20 horas) en dividirse una sola vez. Su pared celular no es normal; es extraordinariamente gruesa y está hecha de cera (ácidos micólicos). Cuando intentas mojar una vela, el agua resbala. Eso es exactamente lo que pasa con los antibióticos y los desinfectantes comunes' },
+        { sprite: 'Assets/Microbact8.png', infoImg: 'Assets/real_salmonella.png', titulo: 'Salmonella', desc: 'Tipo bacilo, A diferencia de otras bacterias que tienen un solo flagelo al final, la salmonella tiene flagelos cubriendo todo su cuerpo. Nada velozmente buscando dónde adherirse. Es famosa por esconderse en alimentos crudos como el pollo, los huevos o la leche sin pasteurizar' },
+        { sprite: 'Assets/Microbact7.png', infoImg: 'Assets/real_pseudomona.png', titulo: 'Pseudomona Aeruginosa', desc: 'Tipo bacilo, tiene un motor rotatorio real llamada flagelo polar. Es una máquina hecha de proteínas que gira a miles de revoluciones por minuto. Se encuentra en casi cualquier lugar donde haya agua o humedad: suelo, piscinas, fregaderos y hospitales.' },
+        { sprite: 'Assets/Microbact10.png', infoImg: 'Assets/real_streptococo.png', titulo: 'Estreptococos', desc: 'Tipo coco, cuando una de estas bacterias se reproduce (se parte en dos), lo hace siempre en la misma dirección (un solo plano), pero las dos nuevas células no se sueltan. Esto provoca que se formen largas filas o cadenas que pueden retorcerse. Es el culpable de las infecciones de garganta dolorosas (faringitis) y la fiebre escarlatina' },
+        { sprite: 'Assets/Microbact4.png', infoImg: 'Assets/real_lactobacilus.png', titulo: 'Lactobacillus', desc: 'Tipo bacilo, a menudo les gusta vivir conectadas, formando largas cadenas (estreptobacilos), pareciendo vagones de tren microscópicos. Se alimentan de azúcares (como la lactosa de la leche). No producen toxinas, sino ácido láctico y son las responsables de convertir la leche líquida en yogur espeso y el queso' },
+        { sprite: 'Assets/Microbact9.png', infoImg: 'Assets/real_Sifilis.png', titulo: 'Treponema Pallidum', desc: 'Assets/real_Sifilis.png', titulo: 'Treponema pallidum', desc: 'Tipo Espiroqueta, Conocida por su enfermedad Sífilis. Sus flagelos están escondidos entre su "piel" y su cuerpo, recorriéndola de punta a punta como si fueran la columna vertebral. El contagio ocurre principalmente por contacto sexual. La bacteria taladra a modo de sacacorchos una pequeña herida o úlcera llamada chancro en el lugar por donde entró' }
     ];
 
     const contenedor = document.getElementById('portaobjetos');
+    const msgVacio = document.getElementById('mensaje-vacio');
     let bacterias = [];
     let pausado = false;
+    let idMuestraActual = 1;
+    let datosGuardados = {}; 
 
-    // --- 2. CLASE BACTERIA ---
-    class Bacteria {
-        constructor(imgIndex, x, y, isGroupMember = false, parentData = null) {
-            this.element = document.createElement('div');
-            this.element.classList.add('bacteria');
-            
-            // Guardamos toda la data de este tipo
-            this.metadata = CATALOGO_BACTERIAS[imgIndex];
-            
-            this.element.style.backgroundImage = `url('${this.metadata.sprite}')`;
-            
-            // --- Determinación de Comportamiento (Lógica Mantenida) ---
-            // Indices 2 y 3 = Rápidas
-            // Indices 4 y 5 = Colonias
-            // Resto = Normales
-            
-            if (imgIndex === 2 || imgIndex === 3) this.tipo = 'rapida';
-            else if (imgIndex === 4 || imgIndex === 5) this.tipo = 'colonia';
-            else this.tipo = 'normal';
+    // --- 1. GESTIÓN DE MUESTRAS Y VALIDACIÓN ---
 
-            // Tamaño
-            let baseSize = 40;
-            if (this.tipo === 'colonia') baseSize = 30;
-            const size = baseSize + Math.random() * 20;
-            this.element.style.width = `${size}px`;
-            this.element.style.height = `${size}px`;
+    function inicializarSistema() {
+        datosGuardados = JSON.parse(localStorage.getItem('BacterialFarm_Save1')) || { cajas: {} };
 
-            // Límites del mundo
-            const mundoW = window.innerWidth * 3;
-            const mundoH = window.innerHeight * 3;
-            this.limitX = mundoW / 2;
-            this.limitY = mundoH / 2;
-            
-            // Posición
-            this.x = x || (Math.random() * mundoW - mundoW/3);
-            this.y = y || (Math.random() * mundoH - mundoH/3);
-
-            // --- FÍSICA ---
-            this.angle = Math.random() * 360; 
-            this.vx = 0; this.vy = 0; this.vRot = 0;
-
-            if (this.tipo === 'rapida') {
-                this.speed = 2 + Math.random() * 1.5;
-                this.angle = Math.random() * 360;
-            } 
-            else if (this.tipo === 'colonia') {
-                this.speed = 0.4;
-                if(isGroupMember && parentData) {
-                    this.speed = parentData.speed;
-                    this.angle = parentData.angle;
-                    this.vRot = (Math.random() - 0.5) * 0.2; 
-                } else {
-                    this.angle = Math.random() * 360;
-                    this.vRot = (Math.random() - 0.5) * 0.2;
+        // --- VALIDACIÓN DE SEGURIDAD: ¿HAY CULTIVOS? ---
+        let hayCultivos = false;
+        if (datosGuardados.cajas) {
+            // Buscamos si existe al menos UNA caja completada
+            for (const key in datosGuardados.cajas) {
+                if (datosGuardados.cajas[key].completada) {
+                    hayCultivos = true;
+                    break;
                 }
-            } 
-            else { // Normal
-                this.speed = 0.8;
-                this.vRot = (Math.random() - 0.5) * 1;
             }
-
-            // --- EVENTO CLICK ACTUALIZADO ---
-            this.element.addEventListener('click', (e) => {
-                if(!isMapDragging) { 
-                    e.stopPropagation(); 
-                    // Ahora pasamos todo el objeto de metadatos
-                    abrirModal(this.metadata); 
-                }
-            });
-
-            contenedor.appendChild(this.element);
         }
 
-        update() {
-            if (pausado) return;
+        if (!hayCultivos) {
+            // SI NO HAY CULTIVOS: Mostramos el bloqueo y detenemos la ejecución
+            document.getElementById('bloqueo-sin-muestras').style.display = 'flex';
+            return; // Importante: Detiene el resto de la función para no cargar nada más
+        }
 
-            if (this.tipo === 'rapida') {
-                // LÓGICA FLAGELAR + CORRECCIÓN BORDES
-                const rads = this.angle * (Math.PI / 180);
-                this.vx = Math.cos(rads) * this.speed;
-                this.vy = Math.sin(rads) * this.speed;
+        // SI HAY CULTIVOS: Continuamos normal
+        const params = new URLSearchParams(window.location.search);
+        let idInicial = params.get('id');
+        
+        if (!idInicial && datosGuardados.muestraObservada) {
+            idInicial = datosGuardados.muestraObservada;
+        }
+        
+        cambiarMuestra(parseInt(idInicial) || 1, false); 
+        generarBotonesLaterales();
+    }
 
-                this.x += this.vx;
-                this.y += this.vy;
+    function generarBotonesLaterales() {
+        const selector = document.getElementById('selector-muestras');
+        selector.innerHTML = ''; 
 
-                // Vibración
-                const vibracion = (Math.random() - 0.5) * 15; 
-                const visualRotation = this.angle + 90 + vibracion; 
-                this.element.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${visualRotation}deg)`;
-
-                // Tumble
-                if (Math.random() < 0.02) {
-                    this.angle += (Math.random() - 0.5) * 180;
-                }
-
-                // Escape de Borde Seguro
-                let fueraDeLimite = false;
-                if (this.x > this.limitX) { this.x = this.limitX - 10; fueraDeLimite = true; }
-                else if (this.x < -this.limitX) { this.x = -this.limitX + 10; fueraDeLimite = true; }
-                
-                if (this.y > this.limitY) { this.y = this.limitY - 10; fueraDeLimite = true; }
-                else if (this.y < -this.limitY) { this.y = -this.limitY + 10; fueraDeLimite = true; }
-
-                if (fueraDeLimite) {
-                    const angleToCenter = Math.atan2(-this.y, -this.x) * (180 / Math.PI);
-                    this.angle = angleToCenter + (Math.random() - 0.5) * 120;
-                }
-
+        for (let i = 1; i <= 12; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'btn-muestra';
+            btn.innerText = i;
+            btn.id = `btn-muestra-${i}`;
+            
+            const tieneDatos = datosGuardados.cajas && datosGuardados.cajas[i] && datosGuardados.cajas[i].completada;
+            
+            if (tieneDatos) {
+                btn.classList.add('cultivada');
+                btn.title = "Muestra Cultivada";
             } else {
-                // LÓGICA NORMAL
-                const rads = this.angle * (Math.PI / 180);
-                this.vx = Math.cos(rads) * this.speed;
-                this.vy = Math.sin(rads) * this.speed;
-
-                this.x += this.vx;
-                this.y += this.vy;
-                
-                this.rotation = (this.rotation || 0) + this.vRot;
-
-                if (this.x > this.limitX || this.x < -this.limitX) { this.angle = 180 - this.angle; }
-                if (this.y > this.limitY || this.y < -this.limitY) { this.angle = 360 - this.angle; }
-
-                this.element.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${this.rotation}deg)`;
+                btn.classList.add('vacia');
+                btn.title = "Muestra Vacía";
             }
+
+            btn.onclick = () => cambiarMuestra(i, true);
+            selector.appendChild(btn);
+        }
+        actualizarEstiloBotones();
+    }
+
+    function actualizarEstiloBotones() {
+        document.querySelectorAll('.btn-muestra').forEach(b => b.classList.remove('seleccionada'));
+        const btnActual = document.getElementById(`btn-muestra-${idMuestraActual}`);
+        if(btnActual) btnActual.classList.add('seleccionada');
+    }
+
+    function cambiarMuestra(id, guardarCambio) {
+        if (id < 1 || id > 12) return;
+        
+        idMuestraActual = id;
+        document.getElementById('etiqueta-muestra').innerText = `Muestra Activa: #${id}`;
+        
+        limpiarEscenario();
+        actualizarEstiloBotones();
+
+        const tieneDatos = datosGuardados.cajas && datosGuardados.cajas[id] && datosGuardados.cajas[id].completada;
+
+        if (tieneDatos) {
+            msgVacio.style.display = 'none';
+            const idReceta = ((id - 1) % 7) + 1;
+            generarBacterias(idReceta);
+        } else {
+            msgVacio.style.display = 'block';
+        }
+
+        if (guardarCambio) {
+            datosGuardados.muestraObservada = id;
+            localStorage.setItem('BacterialFarm_Save1', JSON.stringify(datosGuardados));
         }
     }
 
-    // --- 3. GENERACIÓN ---
-    function iniciarVida() {
-        const cantidadTotal = 80; 
+    function limpiarEscenario() {
+        bacterias.forEach(b => {
+            if(b.element && b.element.parentNode) {
+                b.element.parentNode.removeChild(b.element);
+            }
+        });
+        bacterias = [];
+    }
+
+    function obtenerBacteriaSegunReceta(idReceta) {
+        const receta = RECETAS_BIOLOGICAS[idReceta];
+        const rand = Math.random();
+        let acumulado = 0;
+        for (const [indiceStr, probabilidad] of Object.entries(receta)) {
+            acumulado += probabilidad;
+            if (rand <= acumulado) return parseInt(indiceStr);
+        }
+        return parseInt(Object.keys(receta)[0]);
+    }
+
+    // --- 2. GENERACIÓN DE VIDA ---
+    function generarBacterias(idReceta) {
+        const cantidadTotal = 80;
         
         for (let i = 0; i < cantidadTotal; i++) {
-            const idx = Math.floor(Math.random() * CATALOGO_BACTERIAS.length);
+            const idx = obtenerBacteriaSegunReceta(idReceta);
             
-            // Colonias (Indices 4 y 5)
             if (idx === 4 || idx === 5) {
                 const liderX = (Math.random() * window.innerWidth * 2) - window.innerWidth;
                 const liderY = (Math.random() * window.innerHeight * 2) - window.innerHeight;
@@ -384,16 +458,106 @@
                     offsetY = Math.sin(formationAngle) * dist + Math.sin(formationAngle + Math.PI/2) * curvatura;
 
                     bacterias.push(new Bacteria(idx, liderX + offsetX, liderY + offsetY, true, {
-                        speed: lider.speed,
-                        angle: lider.angle
+                        speed: lider.speed, angle: lider.angle
                     }));
                 }
-
+                i += Math.floor(chainLength / 2);
             } else {
                 bacterias.push(new Bacteria(idx));
             }
         }
-        loop();
+    }
+
+    // --- 3. CLASE BACTERIA ---
+    class Bacteria {
+        constructor(imgIndex, x, y, isGroupMember = false, parentData = null) {
+            this.element = document.createElement('div');
+            this.element.classList.add('bacteria');
+            this.metadata = CATALOGO_BACTERIAS[imgIndex];
+            this.element.style.backgroundImage = `url('${this.metadata.sprite}')`;
+            
+            if (imgIndex === 2 || imgIndex === 3 || imgIndex === 6) this.tipo = 'rapida';
+            else if (imgIndex === 4 || imgIndex === 5) this.tipo = 'colonia';
+            else this.tipo = 'normal';
+
+            let baseSize = 40;
+            if (this.tipo === 'colonia') baseSize = 30;
+            const size = baseSize + Math.random() * 20;
+            this.element.style.width = `${size}px`;
+            this.element.style.height = `${size}px`;
+
+            const mundoW = window.innerWidth * 3;
+            const mundoH = window.innerHeight * 3;
+            this.limitX = mundoW / 2;
+            this.limitY = mundoH / 2;
+            
+            this.x = x || (Math.random() * mundoW - mundoW/3);
+            this.y = y || (Math.random() * mundoH - mundoH/3);
+            this.angle = Math.random() * 360; 
+            this.vx = 0; this.vy = 0; this.vRot = 0;
+
+            if (this.tipo === 'rapida') {
+                this.speed = 2 + Math.random() * 1.5;
+                this.angle = Math.random() * 360;
+            } else if (this.tipo === 'colonia') {
+                this.speed = 0.4;
+                if(isGroupMember && parentData) {
+                    this.speed = parentData.speed;
+                    this.angle = parentData.angle;
+                    this.vRot = (Math.random() - 0.5) * 0.2; 
+                } else {
+                    this.angle = Math.random() * 360;
+                    this.vRot = (Math.random() - 0.5) * 0.2;
+                }
+            } else {
+                this.speed = 0.8;
+                this.vRot = (Math.random() - 0.5) * 1;
+            }
+
+            this.element.addEventListener('click', (e) => {
+                if(!isMapDragging) { e.stopPropagation(); abrirModal(this.metadata); }
+            });
+            contenedor.appendChild(this.element);
+        }
+
+        update() {
+            if (pausado) return;
+            if (this.tipo === 'rapida') {
+                const rads = this.angle * (Math.PI / 180);
+                this.vx = Math.cos(rads) * this.speed;
+                this.vy = Math.sin(rads) * this.speed;
+                this.x += this.vx; this.y += this.vy;
+                const vibracion = (Math.random() - 0.5) * 15; 
+                this.element.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${this.angle + 90 + vibracion}deg)`;
+                if (Math.random() < 0.02) this.angle += (Math.random() - 0.5) * 180;
+                this.checkBounds(true);
+            } else {
+                const rads = this.angle * (Math.PI / 180);
+                this.vx = Math.cos(rads) * this.speed;
+                this.vy = Math.sin(rads) * this.speed;
+                this.x += this.vx; this.y += this.vy;
+                this.rotation = (this.rotation || 0) + this.vRot;
+                this.checkBounds(false);
+                this.element.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${this.rotation}deg)`;
+            }
+        }
+
+        checkBounds(isRapida) {
+            let fuera = false;
+            if (this.x > this.limitX) { this.x = this.limitX - 10; fuera = true; }
+            else if (this.x < -this.limitX) { this.x = -this.limitX + 10; fuera = true; }
+            if (this.y > this.limitY) { this.y = this.limitY - 10; fuera = true; }
+            else if (this.y < -this.limitY) { this.y = -this.limitY + 10; fuera = true; }
+
+            if (fuera) {
+                if (isRapida) {
+                    const angleToCenter = Math.atan2(-this.y, -this.x) * (180 / Math.PI);
+                    this.angle = angleToCenter + (Math.random() - 0.5) * 120;
+                } else {
+                    this.angle = (this.x > this.limitX || this.x < -this.limitX) ? 180 - this.angle : 360 - this.angle;
+                }
+            }
+        }
     }
 
     function loop() {
@@ -401,10 +565,8 @@
         requestAnimationFrame(loop);
     }
 
-    // --- 4. ZOOM Y PANEO ---
     let currentZoom = 0.6; let panX = 0; let panY = 0;
-    let isMapDragging = false; 
-    let startX, startY;
+    let isMapDragging = false; let startX, startY;
 
     function updateTransform(smooth = false) {
         if(smooth) contenedor.classList.add('suavizar-zoom');
@@ -419,59 +581,43 @@
     }
 
     const zona = document.getElementById('microscopio-container');
-    
     zona.addEventListener('mousedown', (e) => {
         isMapDragging = false; 
-        startX = e.clientX - panX; 
-        startY = e.clientY - panY;
-        const initialClickX = e.clientX;
-        const initialClickY = e.clientY;
-
-        const onMouseMove = (moveEvent) => {
-            const dist = Math.hypot(moveEvent.clientX - initialClickX, moveEvent.clientY - initialClickY);
-            if(dist > 5) {
-                isMapDragging = true;
-                panX = moveEvent.clientX - startX; 
-                panY = moveEvent.clientY - startY;
+        startX = e.clientX - panX; startY = e.clientY - panY;
+        const ix = e.clientX; const iy = e.clientY;
+        const onMouseMove = (me) => {
+            if(Math.hypot(me.clientX - ix, me.clientY - iy) > 5) {
+                isMapDragging = true; panX = me.clientX - startX; panY = me.clientY - startY;
                 updateTransform(false); 
             }
         };
-
         const onMouseUp = () => {
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
             setTimeout(() => isMapDragging = false, 50); 
         };
-
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
     });
 
-    // --- 5. MODAL DINÁMICO ---
     const modal = document.getElementById('modal-container');
     const modalImg = document.getElementById('modal-img');
     const modalTitulo = document.getElementById('modal-titulo');
     const modalDesc = document.getElementById('modal-desc');
 
-    // Ahora recibimos el objeto 'datos' completo
     function abrirModal(datos) {
         pausado = true;
-        
-        // Inyectamos la información específica
-        modalImg.src = datos.infoImg;
-        modalTitulo.innerText = datos.titulo;
-        modalDesc.innerText = datos.desc;
-        
+        modalImg.src = datos.infoImg; modalTitulo.innerText = datos.titulo; modalDesc.innerText = datos.desc;
         modal.classList.add('visible');
     }
-
-    function cerrarModal() {
-        modal.classList.remove('visible'); pausado = false;
-    }
+    function cerrarModal() { modal.classList.remove('visible'); pausado = false; }
 
     function guardarPartidaManual() {
-        const save = { nivel: "Microscopio", fecha: new Date().toLocaleString() };
-        localStorage.setItem('BacterialFarm_Save1', JSON.stringify(save));
+        datosGuardados.nivel = "Microscopio";
+        datosGuardados.fecha = new Date().toLocaleString();
+        datosGuardados.muestraObservada = idMuestraActual;
+        localStorage.setItem('BacterialFarm_Save1', JSON.stringify(datosGuardados));
+        
         const btn = document.getElementById('btn-guardar-ui');
         const msg = document.getElementById('msg-guardado');
         btn.style.color = "var(--color-neon)"; btn.style.borderColor = "var(--color-neon)";
@@ -481,7 +627,23 @@
         }, 2000);
     }
 
-    iniciarVida(); updateTransform(true);
+    inicializarSistema();
+    loop();
+    updateTransform(true);
+
 </script>
+
+<script src="audio-manager.js"></script>
+<script>iniciarMusicaPagina(1);</script>
+
+<script src="hud-manager.js"></script>
+<script>
+  // Inicial: coincide con el botón marcado "activo" (4x = zoom 0.6)
+  window.addEventListener('DOMContentLoaded', () => {
+    actualizarEscalaHUD('mm', 4.5);
+  });
+</script>
+
+
 </body>
 </html>

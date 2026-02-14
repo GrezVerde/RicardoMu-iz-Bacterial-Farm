@@ -21,7 +21,7 @@
             display: flex; flex-direction: column; align-items: center; padding: 40px 20px;
         }
 
-        /* --- ENCABEZADO GLASS --- */
+        /* --- ENCABEZADO --- */
         .header-container {
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
@@ -65,13 +65,28 @@
         }
         .item-galeria:hover .thumb-img { transform: scale(1.1); }
 
-        .item-bloqueado { pointer-events: none; filter: grayscale(100%); opacity: 0.7; }
+        /* Estilo para items bloqueados */
+        .item-bloqueado { pointer-events: none; }
+        .item-bloqueado .thumb-img { filter: grayscale(100%) blur(2px); opacity: 0.5; }
 
-        .capa-candado {
+        /* Capa de Candado (Bloqueado) */
+        .capa-info-bloqueo {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center;
+            background: rgba(0, 0, 0, 0.6); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center; padding: 10px;
         }
-        .icono-candado { font-size: 3rem; opacity: 0.8; }
+        .icono-candado { font-size: 3rem; opacity: 0.9; margin-bottom: 10px; text-shadow: 0 0 10px black;}
+        .texto-pista { color: #fff; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Etiqueta de Logro (Desbloqueado) */
+        .badge-logro {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: rgba(74, 222, 128, 0.9); color: #000;
+            padding: 8px; text-align: center; font-weight: 800;
+            font-size: 0.8rem; text-transform: uppercase;
+            transform: translateY(100%); transition: transform 0.3s;
+        }
+        .item-galeria:hover .badge-logro { transform: translateY(0); }
 
         .btn-regresar {
             background: rgba(0,0,0,0.8); border: 2px solid #4ade80; color: #4ade80;
@@ -84,7 +99,7 @@
             background: #4ade80; color: #000; box-shadow: 0 0 20px #4ade80; transform: scale(1.05);
         }
 
-        /* --- MODAL CORREGIDO --- */
+        /* --- MODAL --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.9); display: flex; justify-content: center; align-items: center;
@@ -94,16 +109,11 @@
         .modal-activa { opacity: 1; pointer-events: auto; }
 
         .modal-contenedor-interno {
-            background: #1a1a1a;
-            width: 90%; max-width: 500px;
-            border-radius: 20px;
-            overflow: hidden; /* Mantiene la imagen redondeada arriba */
+            background: #1a1a1a; width: 90%; max-width: 500px;
+            border-radius: 20px; overflow: hidden;
             box-shadow: 0 20px 50px rgba(0,0,0,0.9);
-            border: 1px solid #333;
-            display: flex; flex-direction: column;
+            border: 1px solid #333; display: flex; flex-direction: column;
             animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            
-            /* CORRECCIÓN PRINCIPAL: Espacio abajo para que el botón no toque el borde */
             padding-bottom: 30px; 
         }
 
@@ -117,10 +127,10 @@
             border-bottom: 4px solid #4ade80;
         }
 
-        .modal-texto { padding: 30px 30px 20px 30px; text-align: left; }
+        .modal-texto { padding: 30px 30px 10px 30px; text-align: left; }
 
         .modal-titulo {
-            font-size: 1.8rem; color: #4ade80; margin: 0 0 15px 0;
+            font-size: 1.8rem; color: #4ade80; margin: 0 0 10px 0;
             font-weight: 800; text-transform: uppercase;
         }
 
@@ -129,31 +139,22 @@
             text-align: justify; font-weight: 400;
         }
 
-        /* ESTILO DEL BOTÓN CERRAR MEJORADO */
+        .modal-footer-logro {
+            padding: 0 30px 20px 30px;
+            color: #777; font-size: 0.8rem; font-style: italic;
+            border-bottom: 1px solid #333; margin-bottom: 20px;
+        }
+
         .btn-cerrar-modal {
-            background: #333; 
-            color: #fff; 
-            border: 1px solid #555; 
-            padding: 12px 40px; /* Más ancho */
-            cursor: pointer; 
-            font-weight: bold; 
-            font-size: 0.9rem;
-            transition: all 0.3s; 
-            text-transform: uppercase; 
-            letter-spacing: 2px;
-            
-            /* Forma de píldora y centrado */
-            border-radius: 50px; 
-            margin: 0 auto; /* Centrado horizontal */
-            width: fit-content; /* Se ajusta al texto */
-            display: block;
+            background: #333; color: #fff; border: 1px solid #555; 
+            padding: 12px 40px; cursor: pointer; font-weight: bold; font-size: 0.9rem;
+            transition: all 0.3s; text-transform: uppercase; letter-spacing: 2px;
+            border-radius: 50px; margin: 0 auto; width: fit-content; display: block;
         }
         
         .btn-cerrar-modal:hover { 
-            background: #e74c3c; 
-            border-color: #e74c3c;
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+            background: #e74c3c; border-color: #e74c3c;
+            transform: scale(1.05); box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
         }
 
     </style>
@@ -164,7 +165,7 @@
         
         <div class="header-container">
             <h1 class="titulo-galeria">Galería de Muestras</h1>
-            <p class="subtitulo-galeria">Colecciona especímenes progresando en la historia.</p>
+            <p class="subtitulo-galeria">Desbloquea logros cultivando en el laboratorio.</p>
         </div>
         
         <div class="galeria-grid" id="grid-galeria">
@@ -184,67 +185,107 @@
                 <p id="desc-grande" class="modal-desc-texto">Descripción...</p>
             </div>
             
+            <div class="modal-footer-logro" id="logro-footer">
+                🏆 Logro obtenido: ...
+            </div>
+            
             <button class="btn-cerrar-modal" onclick="cerrarModal()">CERRAR</button>
         </div>
     </div>
 
     <script>
-        // --- 1. CONFIGURACIÓN DE TUS IMÁGENES ---
+        // --- 1. DATOS MIXTOS (Biología + Logros) ---
         const COLECCION = [
             { 
                 id: 1, 
-                titulo: "Escherichia Coli", 
-                desc: "Es una bacteria con forma de bastón que vive naturalmente en los intestinos de los seres humanos y animales de sangre caliente. Se reproduce increíblemente rápido.", 
-                img: "Assets/Bactcard1.jpg", 
-                reqNivel: "Inicio" 
+                titulo: "Helicobacter Pylori", // Info Biológica
+                desc: "Tipo espiroqueta, Es una bacteria con forma de espiral (como un sacacorchos) que tiene la increíble habilidad de vivir en el ácido de tu estómago. Se estima que la mitad de la población mundial la tiene en su interior. Antes se creía que las úlceras eran causadas por el estrés o la comida picante pero en los años 80 Barry Marshall y Robin Warren descubrieron que esta bacteria era la verdadera culpable de la gastritis y las úlceras. Bebieron un vaso lleno de bacterias para demostrarlo y les valió el Premio Nobel", 
+                img: "Assets/Bactcard6.jpg", // Asegúrate que esta imagen existe
+                logro: "Científico Novato", // Info del Juego
+                pista: "Desbloqueado por defecto",
+                condicion: "GRATIS" 
             },
             { 
                 id: 2, 
                 titulo: "Verrucomicrobium Spinosum", 
-                desc: "Estas protuberancias son extensiones de su propio cuerpo (llamadas prostecas), tiene mucha más piel en contacto con el agua para absorver como una esponja.", 
-                img: "Assets/Bactcard2.jpg", 
-                reqNivel: "Laboratorio B" 
+                desc: "Tipo bacilo, es una bacteria que vive en el agua dulce (lagos y estanques). Su nombre literalmente significa microbio con verrugas espinosas. Tiene el cuerpo cubierto de bultos cónicos, A diferencia de los pili o flagelos (que son como pelos pegados encima), estas protuberancias son extensiones de su propio cuerpo (llamadas prostecas). Estos bultos le permiten tener más superficie de contacto con el agua y poder ingresar más alimento.", 
+                img: "Assets/Bactcard8.jpg", 
+                logro: "Cultivo Iniciado", 
+                pista: "Cultiva al menos 1 muestra con éxito.",
+                condicion: "PRIMER_CULTIVO"
             },
             { 
                 id: 3, 
-                titulo: "Pseudomona Aeruginosa", 
-                desc: "Apuesta todo a la velocidad con un solo flagelo polar. Es la pesadilla de los hospitales porque el flagelo le permite nadar rápidamente hacia tejidos dañados.", 
-                img: "Assets/Bactcard3.jpg", 
-                reqNivel: "El Jardín" 
+                titulo: "Staphylococcus Aureus", 
+                desc: "Tipo coco, se agrupa formando racimos irregulares, muy parecidos a un racimo de uvas. Libera la enzima coagulasa creando una pared de sangre coagulada a su alrededor. Se esconde dentro de este coágulo para que tus células de defensa no puedan verla ni tocarla mientras ella se multiplica tranquilamente dentro", 
+                img: "Assets/Bactcard7.jpg", 
+                logro: "Maestro del Laboratorio", 
+                pista: "Completa las 12 Cajas Petri simultáneamente.",
+                condicion: "FULL_HOUSE"
             },
             { 
                 id: 4, 
-                titulo: "Bacterias Estreptococos", 
-                desc: "Son bacterias con forma de esfera perfecta (cocos). Su nombre viene del griego streptos, que significa cadena retorcida.", 
-                img: "Assets/Bactcard4.jpg", 
-                reqNivel: "Final" 
+                titulo: "Bacillus Anthracis", 
+                desc: "Tipo bacilo, es rectangular y de extremos planos. Mejor conocida por ser la causante de la enfermedad conocida como Ántrax. Cuando el ambiente se pone hostil, deja de reproducirse y fabrica una endospora en su interior es como una semilla super resistente. Puede sobrevivir décadas (o siglos) en la tierra, aguantar agua hirviendo, radiación y desinfectantes químicos. Justo una semana después de los atentados del 11 de septiembre se enviaron cartas a oficinas de medios de comunicación y a dos senadores de EE.UU con endoesporas. Murieron 5 personas y se modificó el sistema de correos a nivel mundial. Esta bacteria es la madre de la bacteriología moderna. En 1876, Robert Koch usó al Bacillus anthracis para demostrar por primera vez en la historia que un microbio específico causa una enfermedad específica", 
+                img: "Assets/Bactcard5.jpg", 
+                logro: "Descubrimiento Raro", 
+                pista: "Encuentra la bacteria oculta entre las muestras",
+                condicion: "DESCUBRIR_SIFILIS"
             }
         ];
 
-        // --- 2. LÓGICA DE GENERACIÓN ---
+        // --- 2. LÓGICA DE DESBLOQUEO ---
         const grid = document.getElementById('grid-galeria');
-        const saveFile = JSON.parse(localStorage.getItem('BacterialFarm_Save1'));
+        // Leemos el guardado
+        const saveFile = JSON.parse(localStorage.getItem('BacterialFarm_Save1')) || { cajas: {} };
         
-        function estaDesbloqueado(req) {
-            if (req === "Inicio") return true;
-            if (!saveFile) return false;
-            return req === saveFile.nivel; 
+        function verificarDesbloqueo(tipoCondicion) {
+            // Contar cuántas cajas tienen { completada: true }
+            let totalCompletadas = 0;
+            if (saveFile.cajas) {
+                totalCompletadas = Object.keys(saveFile.cajas).filter(k => saveFile.cajas[k].completada).length;
+            }
+
+            switch(tipoCondicion) {
+                case "GRATIS":
+                    return true; // Siempre visible
+                
+                case "PRIMER_CULTIVO":
+                    return totalCompletadas >= 1; // Al menos 1 caja hecha
+
+                case "FULL_HOUSE":
+                    return totalCompletadas >= 12; // Las 12 cajas hechas
+
+                case "DESCUBRIR_SIFILIS":
+                    // La muestra 5 contiene la receta de Treponema.
+                    // Verificamos si la caja ID 5 ha sido cultivada.
+                    return saveFile.cajas && saveFile.cajas[5] && saveFile.cajas[5].completada;
+
+                default:
+                    return false;
+            }
         }
 
+        // --- 3. RENDERIZADO DEL GRID ---
         COLECCION.forEach(item => {
-            const unlocked = estaDesbloqueado(item.reqNivel);
+            const unlocked = verificarDesbloqueo(item.condicion);
             const card = document.createElement('div');
             
+            // Imagen base
             let contenido = `<img src="${item.img}" class="thumb-img" alt="${item.titulo}">`;
 
             if (unlocked) {
                 card.className = "item-galeria";
                 card.onclick = () => abrirModal(item);
+                // Añadimos etiqueta del logro que aparece al hacer hover
+                contenido += `<div class="badge-logro">🏆 ${item.logro}</div>`;
             } else {
                 card.className = "item-galeria item-bloqueado";
+                // Capa oscura con el candado y la pista
                 contenido += `
-                    <div class="capa-candado">
+                    <div class="capa-info-bloqueo">
                         <span class="icono-candado">🔒</span>
+                        <div class="texto-pista">${item.pista}</div>
                     </div>
                 `;
             }
@@ -253,16 +294,19 @@
             grid.appendChild(card);
         });
 
-        // --- 3. FUNCIONES DEL MODAL ---
+        // --- 4. FUNCIONES MODAL ---
         const modal = document.getElementById('miModal');
         const imgGrande = document.getElementById('img-grande');
         const titGrande = document.getElementById('titulo-grande');
         const descGrande = document.getElementById('desc-grande');
+        const logroFooter = document.getElementById('logro-footer');
 
         function abrirModal(item) {
             imgGrande.src = item.img;
-            titGrande.innerText = item.titulo;
-            descGrande.innerText = item.desc;
+            titGrande.innerText = item.titulo; // Nombre científico
+            descGrande.innerText = item.desc;  // Descripción científica
+            logroFooter.innerText = `🏆 Logro obtenido: ${item.logro}`; // Razón del desbloqueo
+            
             modal.classList.add('modal-activa');
         }
 
@@ -270,5 +314,9 @@
             modal.classList.remove('modal-activa');
         }
     </script>
+
+    <script src="audio-manager.js"></script>
+<script>iniciarMusicaPagina(2);</script>
+
 </body>
 </html>

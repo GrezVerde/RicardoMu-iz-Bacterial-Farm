@@ -1,60 +1,117 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bacterial Farm</title>
-    <link rel="stylesheet" href="Hoja de estilo corrector.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bacterial Farm</title>
+  <link rel="stylesheet" href="Hoja de estilo corrector.css">
+
+  <!-- (Opcional pero recomendado) Asegura que el botón de música quede clickeable arriba -->
+  <style>
+   #btn-musica-global{
+    position: fixed;
+    top: 45px;
+    right: 80px;   /* ✅ en vez de left */
+    left: auto;    /* ✅ por si algún estilo viejo lo fuerza */
+    z-index: 9999;
+    }
+  </style>
 </head>
+
 <body>
 
-    <section id="menu">
-        <div class="contenedor-botones">
-            <a href="inicio.html" class="btn-imagen">
-                <img src="Assets/botoninico.png" alt="Inicio">
-                <span>Inicio</span>
-            </a>
-            <a href="cargarpartida.html" class="btn-imagen">
-                <img src="Assets/botoncargar.png" alt="Créditos">
-                <span>Cargar Partida</span>
-            </a>
-            <a href="galeria.html" class="btn-imagen">
-                <img src="Assets/botongaleria.png" alt="Galería">
-                <span>Galería</span>
-            </a>
-            <a href="jardin.html" class="btn-imagen">
-                <img src="Assets/botonjardin.png" alt="Jardín">
-                <span>Jardín</span>
-            </a>
-            <a href="creditos.html" class="btn-imagen">
-                <img src="Assets/botoncreditos.png" alt="Salir">
-                <span>Créditos</span>
-            </a>
-        </div>
-    </section>
+  <section id="menu">
+    <div class="contenedor-botones">
+      <a href="inicio.html" class="btn-imagen">
+        <img src="Assets/botoninico.png" alt="Inicio">
+        <span>Inicio</span>
+      </a>
 
-    <section id="inicio">
-        </section>
+      <a href="cargarpartida.html" class="btn-imagen">
+        <img src="Assets/botoncargar.png" alt="Créditos">
+        <span>Cargar Partida</span>
+      </a>
 
-    <script>
-        const telon = document.getElementById('inicio');
-        // AHORA BUSCAMOS EL CONTENEDOR DE BOTONES, NO EL MENÚ ENTERO
-        const botones = document.querySelector('.contenedor-botones');
+      <a href="galeria.html" class="btn-imagen">
+        <img src="Assets/botongaleria.png" alt="Galería">
+        <span>Galería</span>
+      </a>
 
-        function abrirLaGranja() {
-            telon.classList.add('subir');
-            // Hacemos visibles los botones
-            botones.classList.add('visible');
-        }
+      <a href="jardin.html" class="btn-imagen">
+        <img src="Assets/botonjardin.png" alt="Jardín">
+        <span>Jardín</span>
+      </a>
 
-        telon.addEventListener('click', abrirLaGranja);
+      <a href="creditos.html" class="btn-imagen">
+        <img src="Assets/botoncreditos.png" alt="Salir">
+        <span>Créditos</span>
+      </a>
+    </div>
+  </section>
 
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                abrirLaGranja();
-            }
-        });
-    </script>
+  <!-- Telón / pantalla inicial -->
+  <section id="inicio"></section>
+
+  <button id="btn-musica-global" onclick="toggleMusicaVisual()">
+    <span id="musica-status-icon">🎵</span>
+  </button>
+
+  <!-- ✅ IMPORTANTE: carga tu audio-manager ANTES de usar iniciarMusicaPagina/toggleMusicaGlobal -->
+  <script src="audio-manager.js"></script>
+
+  <script>
+    // --- Telón: volver a habilitar el click para "abrir" la granja ---
+    const telon = document.getElementById('inicio');
+    const botones = document.querySelector('.contenedor-botones');
+
+    function abrirLaGranja() {
+      // Estas clases deben existir en tu CSS como antes
+      telon.classList.add('subir');
+      botones.classList.add('visible');
+
+      // ✅ Para asegurarnos de que ya NO bloquee clicks al menú
+      telon.style.pointerEvents = 'none';
+    }
+
+    // El clic en el telón abre el juego
+    telon.addEventListener('click', abrirLaGranja);
+
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') abrirLaGranja();
+    });
+
+    // --- Música ---
+    // Iniciar música del índice (Track 0)
+    iniciarMusicaPagina(0);
+
+    function readMusicOn() {
+      try {
+        const st = JSON.parse(localStorage.getItem('bacterial_music_state_v2')) || {};
+        if (typeof st.muted === 'boolean') return !st.muted && st.playing !== false;
+        if (typeof st.playing === 'boolean') return st.playing;
+      } catch(e) {}
+      return localStorage.getItem('music_playing') === 'true';
+    }
+
+    function updateMusicIcon() {
+      const icon = document.getElementById('musica-status-icon');
+      icon.innerText = readMusicOn() ? "🎵" : "🔇";
+    }
+
+    function toggleMusicaVisual() {
+      toggleMusicaGlobal();
+      setTimeout(updateMusicIcon, 40);
+    }
+
+    window.addEventListener('load', () => {
+      updateMusicIcon();
+      setTimeout(updateMusicIcon, 80);
+    });
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'bacterial_music_state_v2' || e.key === 'music_playing') updateMusicIcon();
+    });
+  </script>
 
 </body>
 </html>

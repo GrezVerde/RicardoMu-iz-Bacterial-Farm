@@ -29,9 +29,10 @@
       align-items: center;
     }
 
+    /* --- CAMBIO PRINCIPAL AQUÍ --- */
     #panel-datos {
-      position: absolute;
-      left: 0;
+      position: fixed; /* Cambiado de absolute a fixed para fijarlo a la pantalla */
+      left: 30px;      /* Separado del borde izquierdo */
       top: 50%;
       transform: translateY(-50%);
       width: 260px;
@@ -130,7 +131,6 @@
       object-fit: cover;
     }
 
-    /* Canvas visible donde se verá la imagen revelada */
     #lienzo-cultivo {
       position: absolute;
       top: 0; left: 0;
@@ -150,7 +150,6 @@
       pointer-events: none;
       z-index: 9999;
       display: none;
-      /* Hotspot en esquina superior izquierda */
       transform: translate(0, 0);
       transform-origin: top left;
     }
@@ -168,6 +167,26 @@
       font-size: 1.5rem;
       color: #555;
       font-weight: bold;
+    }
+
+    /* ESTILO PARA EL BOTÓN FLOTANTE DE REGRESO */
+    .boton-volver-flotante {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        text-decoration: none;
+        color: white;
+        background: rgba(0,0,0,0.6);
+        padding: 12px 25px;
+        border-radius: 25px;
+        font-weight: bold;
+        transition: background 0.3s;
+        cursor: pointer;
+        z-index: 9999;
+        font-family: sans-serif;
+    }
+    .boton-volver-flotante:hover {
+        background: rgba(0,0,0,0.9);
     }
   </style>
 </head>
@@ -191,7 +210,7 @@
         ¡CULTIVO EXITOSO!
       </div>
 
-      <button id="btn-salir" class="btn-accion" onclick="salir()" disabled>Guardar y Salir</button>
+      <button id="btn-salir" class="btn-accion" onclick="salirVictoria()" disabled>Completar Muestra</button>
     </div>
 
     <div id="contenedor-petri">
@@ -199,6 +218,8 @@
       <canvas id="lienzo-cultivo" width="500" height="500"></canvas>
     </div>
   </div>
+
+  <a class="boton-volver-flotante" onclick="regresarMesa()">⬅ Volver a Mesa</a>
 
   <script>
     // --- CONFIGURACIÓN ---
@@ -232,37 +253,31 @@
       numImg: null
     };
 
-    // --- CANVAS INTERNOS (CLAVE DEL FIX) ---
-    // 1) imageCanvas: guarda la imagen oculta ya ajustada (cover sin distorsión)
+    // --- CANVAS INTERNOS ---
     const imageCanvas = document.createElement('canvas');
     imageCanvas.width = DIMENSION_CAJA;
     imageCanvas.height = DIMENSION_CAJA;
     const imageCtx = imageCanvas.getContext('2d');
 
-    // 2) maskCanvas: guarda el “donde pintaste” (alpha)
     const maskCanvas = document.createElement('canvas');
     maskCanvas.width = DIMENSION_CAJA;
     maskCanvas.height = DIMENSION_CAJA;
     const maskCtx = maskCanvas.getContext('2d', { willReadFrequently: true });
 
-    // Throttle de cálculo
     let ultimoCalculo = 0;
-    const INTERVALO_CALCULO = 250; // más fluido sin trabarse
+    const INTERVALO_CALCULO = 250;
     let calcPendiente = false;
     let calcPrecisoSolicitado = false;
 
-    // --- UTIL: drawImageCover (sin distorsión) ---
+    // --- UTIL: drawImageCover ---
     function drawImageCover(ctx2d, img, x, y, w, h) {
       const iw = img.naturalWidth || img.width;
       const ih = img.naturalHeight || img.height;
-
       const scale = Math.max(w / iw, h / ih);
       const nw = iw * scale;
       const nh = ih * scale;
-
       const dx = x + (w - nw) / 2;
       const dy = y + (h - nh) / 2;
-
       ctx2d.clearRect(x, y, w, h);
       ctx2d.drawImage(img, dx, dy, nw, nh);
     }
@@ -275,7 +290,7 @@
 
       if (!estado.id) {
         alert("Falta ID");
-        window.location.href = "petri.html";
+        window.location.href = "petri.html"; 
         return;
       }
 
@@ -285,7 +300,7 @@
 
     // --- 2. SISTEMA DE MEMORIA ---
     function determinarTextura() {
-      let save = JSON.parse(localStorage.getItem('BacterialFarm_Save1')) || { cajas: {} };
+      let save = JSON.parse(localStorage.getItem('BacterialFarm_Save1')) || {};
       if (!save.cajas) save.cajas = {};
 
       let numImg;
@@ -303,8 +318,8 @@
         }
       } else {
         const rnd = Math.random();
-        if (rnd < 0.85) numImg = Math.floor(Math.random() * 3) + 2; // 2,3,4
-        else numImg = Math.floor(Math.random() * 3) + 5; // 5,6,7
+        if (rnd < 0.85) numImg = Math.floor(Math.random() * 3) + 2; 
+        else numImg = Math.floor(Math.random() * 3) + 5; 
 
         save.cajas[estado.id] = {
           tipoBacteria: numImg,
@@ -316,34 +331,26 @@
 
       estado.numImg = numImg;
 
-      // Actualizar UI si había progreso
       if (estado.porcentaje > 0) actualizarProgreso(estado.porcentaje);
 
       prepararImagenOculta(numImg);
     }
 
-    // --- 3. CARGA + PREPARACIÓN DE IMAGEN OCULTA ---
+    // --- 3. CARGA ---
     function prepararImagenOculta(numImg) {
       const ruta = `Assets/petri${numImg}.jpg`;
       const img = new Image();
-      // IMPORTANTE: NO ponemos crossOrigin para evitar fallos raros en local/file
       img.src = ruta;
 
       img.onload = () => {
-        // 1) Dibujar la imagen oculta ajustada en imageCanvas (cover)
         drawImageCover(imageCtx, img, 0, 0, DIMENSION_CAJA, DIMENSION_CAJA);
-
-        // 2) Preparar máscara (vacía o completa)
         maskCtx.clearRect(0, 0, DIMENSION_CAJA, DIMENSION_CAJA);
 
         if (estado.completado) {
-          // Llenar máscara completa si ya está completado
           llenarMascaraCompleta();
         }
 
-        // 3) Render inicial
         render();
-
         loader.style.display = 'none';
         iniciarLogica();
       };
@@ -366,29 +373,26 @@
         activarEventosPointer();
       } else {
         uiInstr.innerText = "Modo observación.";
+        asa.style.display = 'none';
+        btnSalir.innerText = "Volver"; 
         btnSalir.disabled = false;
+        btnSalir.onclick = regresarMesa; 
       }
     }
 
-    // --- RENDER: imagen oculta recortada por la máscara ---
     function render() {
       ctx.clearRect(0, 0, DIMENSION_CAJA, DIMENSION_CAJA);
-
-      // Recorte circular (para que no salga del círculo visual)
       ctx.save();
       ctx.beginPath();
       ctx.arc(DIMENSION_CAJA / 2, DIMENSION_CAJA / 2, DIMENSION_CAJA / 2, 0, Math.PI * 2);
       ctx.clip();
 
-      // Dibuja imagen completa
       ctx.globalCompositeOperation = 'source-over';
       ctx.drawImage(imageCanvas, 0, 0);
 
-      // Aplica máscara: deja visible solo donde hay alpha en maskCanvas
       ctx.globalCompositeOperation = 'destination-in';
       ctx.drawImage(maskCanvas, 0, 0);
 
-      // Regresa a normal
       ctx.globalCompositeOperation = 'source-over';
       ctx.restore();
     }
@@ -423,10 +427,8 @@
 
       canvas.addEventListener('pointermove', (e) => {
         if (!estado.pintando || estado.completado) return;
-
         const { x, y } = obtenerCoordsCanvas(e);
         pintarMascara(x, y, false);
-
         const ahora = Date.now();
         if (ahora - ultimoCalculo > INTERVALO_CALCULO) {
           solicitarCalculo(false);
@@ -449,21 +451,16 @@
       return { x, y };
     }
 
-    // Pintar sobre máscara (donde pintas se revela la imagen)
     let lastX = null, lastY = null;
-
     function pintarMascara(x, y, iniciar) {
-      // No pintar fuera del círculo (extra seguro)
       const cx = DIMENSION_CAJA / 2, cy = DIMENSION_CAJA / 2, r = DIMENSION_CAJA / 2;
       const dx = x - cx, dy = y - cy;
       if ((dx*dx + dy*dy) > (r*r)) return;
 
       maskCtx.save();
-      // Clip circular también en la máscara
       maskCtx.beginPath();
       maskCtx.arc(cx, cy, r, 0, Math.PI * 2);
       maskCtx.clip();
-
       maskCtx.globalCompositeOperation = 'source-over';
       maskCtx.lineJoin = 'round';
       maskCtx.lineCap = 'round';
@@ -471,34 +468,24 @@
       maskCtx.fillStyle = 'rgba(255,255,255,1)';
       maskCtx.lineWidth = RADIO_PINCEL * 2;
 
-      if (iniciar || lastX === null) {
-        lastX = x; lastY = y;
-      }
-
-      // Línea suave
+      if (iniciar || lastX === null) { lastX = x; lastY = y; }
       maskCtx.beginPath();
       maskCtx.moveTo(lastX, lastY);
       maskCtx.lineTo(x, y);
       maskCtx.stroke();
-
-      // Sello circular
       maskCtx.beginPath();
       maskCtx.arc(x, y, RADIO_PINCEL, 0, Math.PI * 2);
       maskCtx.fill();
-
       maskCtx.restore();
 
       lastX = x; lastY = y;
-
-      // Re-render para ver la imagen revelada
       render();
     }
 
-    // --- 5. PROGRESO ---
+    // --- 5. CÁLCULOS Y PROGRESO ---
     function solicitarCalculo(preciso) {
       if (preciso) calcPrecisoSolicitado = true;
       if (calcPendiente) return;
-
       calcPendiente = true;
       requestAnimationFrame(() => {
         calcPendiente = false;
@@ -511,30 +498,21 @@
     function calcularArea(salto) {
       const imgData = maskCtx.getImageData(0, 0, DIMENSION_CAJA, DIMENSION_CAJA);
       const data = imgData.data;
-
-      const centroX = DIMENSION_CAJA / 2;
-      const centroY = DIMENSION_CAJA / 2;
-      const radio = DIMENSION_CAJA / 2;
-      const radioCuadrado = radio * radio;
-
-      let pintados = 0;
-      let totales = 0;
+      const cx = DIMENSION_CAJA / 2, cy = DIMENSION_CAJA / 2, rSq = (DIMENSION_CAJA / 2) ** 2;
+      let pintados = 0, totales = 0;
 
       for (let y = 0; y < DIMENSION_CAJA; y += salto) {
         for (let x = 0; x < DIMENSION_CAJA; x += salto) {
-          const dx = x - centroX;
-          const dy = y - centroY;
-          if ((dx*dx + dy*dy) <= radioCuadrado) {
+          const dx = x - cx, dy = y - cy;
+          if ((dx*dx + dy*dy) <= rSq) {
             totales++;
-            const index = (y * DIMENSION_CAJA + x) * 4;
-            if (data[index + 3] > 10) pintados++;
+            if (data[(y * DIMENSION_CAJA + x) * 4 + 3] > 10) pintados++;
           }
         }
       }
 
       let porcentaje = (totales > 0) ? Math.round((pintados / totales) * 100) : 0;
       if (porcentaje > 100) porcentaje = 100;
-
       actualizarProgreso(porcentaje);
     }
 
@@ -543,14 +521,10 @@
       uiBarra.style.width = p + "%";
       uiPorc.innerText = p;
 
-      // Guardar progreso parcial siempre (por si cierran sin completar)
       if (!estado.completado) guardarProgreso(p, false);
 
-      // Habilitar guardar y salir SOLO si pasa la meta
       if (p >= META_GANAR) {
         btnSalir.disabled = false;
-      } else {
-        btnSalir.disabled = true;
       }
 
       if (p >= META_GANAR && !estado.completado) {
@@ -558,15 +532,7 @@
         uiMsg.style.display = 'block';
         uiInstr.innerText = "Proceso terminado.";
         asa.style.display = 'none';
-
-        // Completar máscara por si quieres “sellarlo”
-        // (opcional: comenta si no lo quieres)
-        // llenarMascaraCompleta();
-        // render();
-
         guardarProgreso(100, true);
-      } else {
-        uiMsg.style.display = 'none';
       }
     }
 
@@ -583,11 +549,10 @@
 
     function guardarProgreso(porcentaje, completado = false) {
       try {
-        let save = JSON.parse(localStorage.getItem('BacterialFarm_Save1')) || { cajas: {} };
+        let save = JSON.parse(localStorage.getItem('BacterialFarm_Save1')) || {};
         if (!save.cajas) save.cajas = {};
         if (!save.cajas[estado.id]) save.cajas[estado.id] = {};
 
-        // Conserva tipoBacteria si ya existe
         if (!save.cajas[estado.id].tipoBacteria && estado.numImg) {
           save.cajas[estado.id].tipoBacteria = estado.numImg;
         }
@@ -605,14 +570,25 @@
       }
     }
 
-    function salir() {
-      // Solo permitir salir si alcanzó META o ya completó
+    function salirVictoria() {
       if (!estado.completado && estado.porcentaje < META_GANAR) {
-        alert(`Necesitas al menos ${META_GANAR}% para guardar y salir.`);
+        alert("Aún no has completado el cultivo.");
         return;
       }
       window.location.href = "petri.html";
     }
+
+    function regresarMesa() {
+      guardarProgreso(estado.porcentaje, estado.completado);
+      window.location.href = "petri.html";
+    }
   </script>
+
+  <script src="audio-manager.js"></script>
+    <script>iniciarMusicaPagina(0);</script>
+
+<script src="hud-manager.js"></script>
+<script>actualizarEscalaHUD('cm', 10.0);</script>
+
 </body>
 </html>
